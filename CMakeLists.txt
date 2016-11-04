@@ -20,8 +20,7 @@ endif()
 find_package(OpenCL REQUIRED)
 include_directories(${OpenCL_INCLUDE_DIRS} src/headers 
 	vendor/glfw/include 
-	vendor/glad/include
-	vendor/stb)
+	vendor/glad/include)
 
 file(GLOB VENDOR_SOURCES vendor/glad/src/glad.c)
 
