@@ -20,8 +20,15 @@ void ProgressBar::incrementProgress(float timetook) {
 
   int minutes = eta/60;
   int hours = minutes/60;
-  int seconds = seconds % 60;
+  int seconds = eta % 60;
 
-  std::cout << "] " << int(prog*100.0f) << "% " << progress << "/" << amount << " " << (hours) << "h " << (minutes % 60) << "m " << "\r";
+  std::cout << "] " << int(prog*100.0f) << "% " 
+    << progress << "/" << amount << " " 
+    << (hours) << "h " << (minutes % 60) << "m " << seconds << "s" "\r";
   std::cout.flush();
+}
+
+void ProgressBar::clear() {
+  progress = 0;
+  avgTimeTook = 0;
 }

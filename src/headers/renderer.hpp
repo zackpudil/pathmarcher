@@ -9,18 +9,21 @@ class Renderer {
 private:
   float** reel;
 
+  int width;
+  int height;
+
   int pass;
   int frames;
   float timeStep;
-
 public:
   int currentFrame;
-  float currenTime;
+  float currentTime;
 
-  Renderer(int, int, float);
+  Renderer(int, int, float, int, int);
 
-  void prerender(Pixel*, ProgressBar*, int, int);
-  void init(int, int);
+  void prerender(Pixel*, ProgressBar*, bool, char*);
+  void init();
+  void loadPlayback(char* img, ProgressBar*);
 
   void play(Pipeline*);
   void render(Pipeline*, Pixel*, GLFWwindow*);

@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.1)
 set(CMAKE_CXX_STANDARD 11)
 
-project(marcher)
+project(pathmarcher)
 
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)

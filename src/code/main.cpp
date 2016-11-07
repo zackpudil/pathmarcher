@@ -7,14 +7,37 @@
 int width = 1280;
 int height = 720;
 
-int pass = 10;
-int frames = 50;
+int pass = 150;
+int frames = 200;
 float timeStep = 0.03f;
 
 int main(int argc, char** argv) {
 
-  bool offline = false;
-  if(argc > 1 && std::string("offline").compare(argv[1]) == 0) offline = true;
+  char *imgPath;
+
+  bool prerender = false;
+  bool save = false;
+
+  bool append = false;
+  bool load = false;
+
+  int continueOnFrame = 0;
+
+  if(argc > 1 && std::string("prerender").compare(argv[1]) == 0) {
+    prerender = true;
+    if(argc > 2 && std::string("save").compare(argv[2]) == 0) save = true;
+    imgPath = argv[3];
+  } else if(argc > 2 && std::string("playback").compare(argv[1]) == 0) {
+    load = true;
+    imgPath = argv[2];
+    frames = std::stoi(argv[3], nullptr);
+  } else if(argc > 3 && std::string("continue").compare(argv[1]) == 0) {
+    append = true;
+    imgPath = argv[2];
+    continueOnFrame = std::stoi(argv[3], nullptr);
+  }
+
+  bool prerendered = prerender || load || append;
 
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -45,21 +68,34 @@ int main(int argc, char** argv) {
 
   Pixel pixel(PROJECT_SOURCE_DIR "/kernels/scene.cl", width, height);
   Pipeline pipeline(width, height);
-  Renderer renderer(frames, pass, timeStep);
+  Renderer renderer(frames, pass, timeStep, width, height);
 
-  if(offline) {
+  if(prerender) {
     ProgressBar progress(frames*pass);
-    renderer.prerender(&pixel, &progress, width, height);
+    renderer.prerender(&pixel, &progress, save, imgPath);
+  } else if(load) {
+    ProgressBar progress(frames);
+    renderer.loadPlayback(imgPath, &progress);
+  } else if(append) {
+    std::cout << std::endl << "Rendering from frame " << continueOnFrame << std::endl;
+
+    ProgressBar progress(frames*pass);
+    renderer.currentTime = (timeStep*((float)continueOnFrame));
+    renderer.prerender(&pixel, &progress, true, imgPath);
+    std::cout << std::endl;
+    exit(0);
   } else {
-    renderer.init(width, height);
+    renderer.init();
   }
+
+  renderer.currentFrame = 0;
 
   // loop and render cl created texture.
   while(glfwWindowShouldClose(window) == false) {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, true);
 
-    if(offline) {
+    if(prerendered) {
       renderer.play(&pipeline);
     } else {
       renderer.render(&pipeline, &pixel, window);
@@ -69,7 +105,7 @@ int main(int argc, char** argv) {
     glfwPollEvents();
   }
 
-  if(!offline) {
+  if(!prerendered) {
     std::cout << renderer.currentFrame << std::endl;
   }
 
