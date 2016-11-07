@@ -15,6 +15,7 @@ private:
   cl::Buffer heightBuffer;
   cl::Buffer widthBuffer;
   cl::Buffer frameBuffer;
+  cl::Buffer timeBuffer;
 
   cl::Image2D inBuffer;
   cl::Image2D resultBuffer;
@@ -24,13 +25,10 @@ private:
   void initPlatformDeviceContext();
   void initSourcesProgramQueue(const char* path);
   void initKernel();
-
-  float* imageData;
-
 public:
   Pixel(const char*, int, int);
 
-  float* computeImage(float);
+  float* computeImage(float, float, float*, float*);
 
   int width;
   int height;

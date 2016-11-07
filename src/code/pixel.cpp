@@ -4,14 +4,14 @@
 Pixel::Pixel(const char* path, int w, int h) {
   width = w;
   height = h;
-  imageData = (float *)malloc(width*height*4*sizeof(float));
+  //imageData = (float *)malloc(width*height*4*sizeof(float));
 
   this->initPlatformDeviceContext();
   this->initSourcesProgramQueue(path);
   this->initKernel();
 }
 
-float *Pixel::computeImage(float frame) {
+float *Pixel::computeImage(float frame, float time, float *in, float *out) {
   cl::size_t<3> origin;
   origin.push_back(0);origin.push_back(0);origin.push_back(0);
   
@@ -21,13 +21,15 @@ float *Pixel::computeImage(float frame) {
   queue.enqueueWriteBuffer(widthBuffer, CL_TRUE, 0, sizeof(int), &width);
   queue.enqueueWriteBuffer(heightBuffer, CL_TRUE, 0, sizeof(int), &height);
   queue.enqueueWriteBuffer(frameBuffer, CL_TRUE, 0, sizeof(float), &frame);
-  queue.enqueueWriteImage(inBuffer, CL_TRUE, origin, region, 0, 0, imageData);
+  queue.enqueueWriteBuffer(timeBuffer, CL_TRUE, 0, sizeof(float), &time);
 
-  kernel(widthBuffer, heightBuffer, frameBuffer, inBuffer, resultBuffer);
+  queue.enqueueWriteImage(inBuffer, CL_TRUE, origin, region, 0, 0, in);
 
-  queue.enqueueReadImage(resultBuffer, true, origin, region, 0, 0, imageData);
+  kernel(widthBuffer, heightBuffer, frameBuffer, timeBuffer, inBuffer, resultBuffer);
 
-  return imageData;
+  queue.enqueueReadImage(resultBuffer, true, origin, region, 0, 0, out);
+
+  return out;
 }
 
 void Pixel::initPlatformDeviceContext() {
@@ -63,21 +65,11 @@ void Pixel::initKernel() {
   heightBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
   widthBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
   frameBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float));
+  timeBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float));
 
-  int imageResult;
   cl::ImageFormat imageFormat(CL_RGBA, CL_FLOAT);
-  inBuffer = cl::Image2D(context, CL_MEM_READ_ONLY, imageFormat, width, height, 0, NULL, &imageResult);
-
-  if(imageResult != CL_SUCCESS) {
-    std::cout << "Failure to create image buffer: " << imageResult;
-    exit(1);
-  }
-
-  resultBuffer = cl::Image2D(context, CL_MEM_READ_WRITE, imageFormat, width, height, 0, NULL, &imageResult);
-  if(imageResult != CL_SUCCESS) {
-    std::cout << "Failure to create image buffer: " << imageResult;
-    exit(1);
-  }
+  inBuffer = cl::Image2D(context, CL_MEM_READ_ONLY, imageFormat, width, height, 0, NULL, nullptr);
+  resultBuffer = cl::Image2D(context, CL_MEM_READ_WRITE, imageFormat, width, height, 0, NULL, nullptr);
 
   kernel = cl::KernelFunctor(cl::Kernel(program, "pixel"), queue, cl::NullRange, 
     cl::NDRange(width, height), cl::NDRange(20, 20));

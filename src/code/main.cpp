@@ -1,12 +1,38 @@
 #include <main.hpp>
 #include <pixel.hpp>
 #include <pipeline.hpp>
+#include <progressbar.hpp>
+#include <renderer.hpp>
 
 int width = 1280;
 int height = 720;
 
-int main() {
-  // Load GL context.
+int pass = 10;
+int frames = 50;
+float timeStep = 0.03f;
+
+// void renderOffiline(Pixel* pixel, float **reel, ProgressBar* progress) {
+//   float time = 0.0f;
+
+//   for(int i = 0; i < frames; i++) {
+//     reel[i] = (float *)malloc(sizeof(float)*width*height*4);
+//     for(int j = 0; j < pass; j++) {
+//       float timetook = glfwGetTime();
+//       pixel->computeImage(j, time, reel[i], reel[i]);
+//       timetook = glfwGetTime() - timetook;
+
+//       progress->incrementProgress(timetook);
+//     }
+
+//     time += timeStep;
+//   }
+// }
+
+int main(int argc, char** argv) {
+
+  bool offline = false;
+  if(argc > 1 && std::string("offline").compare(argv[1]) == 0) offline = true;
+
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -36,28 +62,64 @@ int main() {
 
   Pixel pixel(PROJECT_SOURCE_DIR "/kernels/scene.cl", width, height);
   Pipeline pipeline(width, height);
+  Renderer renderer(frames, pass, timeStep);
 
-  float time = glfwGetTime();
-  int fps = 0;
-  int frame = 0;
+  if(offline) {
+    ProgressBar progress(frames*pass);
+    renderer.prerender(&pixel, &progress, width, height);
+  } else {
+    renderer.init(width, height);
+  }
+  // float** reel = (float **)malloc(sizeof(float*)*frames);
+
+  // if(offline) {
+  //   ProgressBar progress(frames*pass);
+  //   renderOffiline(&pixel, reel, &progress);
+  // } else {
+  //   reel[0] = (float *)malloc(sizeof(float)*width*height*4);
+  // }
+
+  // int ii = 0;
+  // int frame = 0;
+  // float time = 0.0f;
+
   // loop and render cl created texture.
   while(glfwWindowShouldClose(window) == false) {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, true);
 
-    pipeline.imageData = pixel.computeImage(frame);
-    pipeline.draw(frame);
-    fps++;
-    frame++;
-
-    if(glfwGetTime() - time >= 1.0f) {
-      std::cout << "Frame Rate: " << fps << " fps" << std::endl;  
-      time = glfwGetTime();
-      fps = 0;
+    if(offline) {
+      renderer.play(&pipeline);
+    } else {
+      renderer.render(&pipeline, &pixel, window);
     }
+
+    // if(offline) {
+    //   pipeline.imageData = reel[ii];
+    //   pipeline.draw(pass);
+    //   if(glfwGetTime() - time >= timeStep - (timeStep/2.0f)) {
+    //     ii++;
+    //     if(ii == frames) ii = 0;
+    //     time = glfwGetTime();
+    //   }
+    // } else {
+    //   pixel.computeImage(frame, time, reel[0], reel[0]);
+    //   pipeline.imageData = reel[0];
+    //   pipeline.draw(frame);
+    //   frame++;
+
+    //   if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
+    //     time += timeStep;
+    //     frame = 0;
+    //   }
+    // }
 
     glfwSwapBuffers(window);
     glfwPollEvents();
+  }
+
+  if(!offline) {
+    std::cout << renderer.currentFrame << std::endl;
   }
 
   glfwTerminate();

@@ -31,7 +31,8 @@ float de(float3 p) {
 
   float d = fabs(1.0f - 2.0f*fabs(dot(p.xz, float2(1.0f))))/(2.0f*sqrt(5.0f));
 
-  return max(d - 0.3f/4.0f, p.y + 0.5f);
+  d = max(d - 0.3f/4.0f, p.y + 0.5f);
+  return min(d, p.y + 1.0f);
 }
 
 float trace(float3 ro, float3 rd, float mx, float eps, int it, float fu) {
@@ -90,10 +91,14 @@ float3 render(float3 ro, float3 rd, float sa) {
   return col;
 }
 
-void kernel pixel(global int* w, global int* h, global float* f, read_only image2d_t in, write_only image2d_t image) {
+void kernel pixel(global int* w, global int* h, 
+                  global float* f, global float* ti, 
+                  read_only image2d_t in, write_only image2d_t image) {
+
   int width = *w;
   int height = *h;
   float frame = *f;
+  float time = *ti;
 
   int2 t = (int2)(get_global_id(0), get_global_id(1));
 
@@ -106,8 +111,7 @@ void kernel pixel(global int* w, global int* h, global float* f, read_only image
   float2 uv = (-res + 2.0f*(tf + of))/res.y;
   uv.x *= res.x/res.y;
 
-
-  float3 ro = (float3)(0.0f, 2.0f, -3.0f);
+  float3 ro = (float3)(time, 2.0f, -3.0f);
   float3 ww = normalize((float3)(0.0f, 1.0f, 0.0f)-ro);
   float3 uu = normalize(cross((float3)(0.0f, 1.0f, 0.0f), ww));
   float3 vv = normalize(cross(ww, uu));

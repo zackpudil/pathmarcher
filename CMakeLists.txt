@@ -8,15 +8,6 @@ option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(vendor/glfw)
 
-if(MSVC) 
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++11")
-	if(NOT WIN32)
-		set(GLAD_LIBRARIES dl)
-	endif()
-endif()
-
 find_package(OpenCL REQUIRED)
 include_directories(${OpenCL_INCLUDE_DIRS} src/headers 
 	vendor/glfw/include 
@@ -38,11 +29,10 @@ source_group("Kernels" FILES ${PROJECT_KERNELS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDOR_SOURCES})
 
-add_definitions(-DGLFW_INCLUDE_NONE 
-	-DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/src\"
-	-DCMAKE_BUILD_TYPE=Debug)
+add_definitions(-DGLFW_INCLUDE_NONE -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/src\" "-w")
 
 link_directories(${OpenCL_LIBRARY})
+
 add_executable(${PROJECT_NAME} 
 	${PROJECT_SOURCES} ${PROJECT_HEADERS}
 	${PROJECT_KERNELS} ${PROJECT_SHADERS}
