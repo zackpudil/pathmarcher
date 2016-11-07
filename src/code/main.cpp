@@ -11,23 +11,6 @@ int pass = 10;
 int frames = 50;
 float timeStep = 0.03f;
 
-// void renderOffiline(Pixel* pixel, float **reel, ProgressBar* progress) {
-//   float time = 0.0f;
-
-//   for(int i = 0; i < frames; i++) {
-//     reel[i] = (float *)malloc(sizeof(float)*width*height*4);
-//     for(int j = 0; j < pass; j++) {
-//       float timetook = glfwGetTime();
-//       pixel->computeImage(j, time, reel[i], reel[i]);
-//       timetook = glfwGetTime() - timetook;
-
-//       progress->incrementProgress(timetook);
-//     }
-
-//     time += timeStep;
-//   }
-// }
-
 int main(int argc, char** argv) {
 
   bool offline = false;
@@ -70,18 +53,6 @@ int main(int argc, char** argv) {
   } else {
     renderer.init(width, height);
   }
-  // float** reel = (float **)malloc(sizeof(float*)*frames);
-
-  // if(offline) {
-  //   ProgressBar progress(frames*pass);
-  //   renderOffiline(&pixel, reel, &progress);
-  // } else {
-  //   reel[0] = (float *)malloc(sizeof(float)*width*height*4);
-  // }
-
-  // int ii = 0;
-  // int frame = 0;
-  // float time = 0.0f;
 
   // loop and render cl created texture.
   while(glfwWindowShouldClose(window) == false) {
@@ -93,26 +64,6 @@ int main(int argc, char** argv) {
     } else {
       renderer.render(&pipeline, &pixel, window);
     }
-
-    // if(offline) {
-    //   pipeline.imageData = reel[ii];
-    //   pipeline.draw(pass);
-    //   if(glfwGetTime() - time >= timeStep - (timeStep/2.0f)) {
-    //     ii++;
-    //     if(ii == frames) ii = 0;
-    //     time = glfwGetTime();
-    //   }
-    // } else {
-    //   pixel.computeImage(frame, time, reel[0], reel[0]);
-    //   pipeline.imageData = reel[0];
-    //   pipeline.draw(frame);
-    //   frame++;
-
-    //   if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
-    //     time += timeStep;
-    //     frame = 0;
-    //   }
-    // }
 
     glfwSwapBuffers(window);
     glfwPollEvents();
