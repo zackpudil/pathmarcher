@@ -3,41 +3,39 @@ constant sampler_t inS =
   | CLK_ADDRESS_CLAMP_TO_EDGE
   | CLK_FILTER_NEAREST;
 
-static float3 reflect(float3 v, float3 n){
+float3 reflect(float3 v, float3 n){
   return v - 2.0f*dot(v, n) * n;
 }
 
-static float fract_z(float n) {
+float2 fract2_z(float2 n) {
   return n - floor(n);
 }
 
-static float hash(float n) {
+float fract_z(float n) {
+  return n - floor(n);
+}
+
+float hash(float n) {
   return fract_z(sin(n)*43578.5453f);
 }
 
-static float box(float2 p, float2 b) {
-  float2 d = fabs(p) - b;
-  return min(max(d.x, d.y), 0.0f) - length(max(d, 0.0f));
+float hash2(float2 n) {
+  return hash(dot(n, (float2)(12.232f, 39.343f)));
 }
 
-static float de(float3 p) {
-  float4 q = (float4)(p, 1.0f);
-  q.xyz -= (float3)(1.0f, 1.8f, 1.0f);
+float de(float3 p) {
+  float2 t = floor(p.xz);
 
-  for(int i = 0; i < 5; i++) {
-    q.xyz = fabs(q.xyz + 1.0f) - 1.0f;
-    q /= clamp(dot(q.xyz, q.xyz), 0.25f, 1.0f);
-    q *= 1.1f;
-  }
+  p.xz = fract2_z(p.xz) - 0.5f;
+  p.x *= 2.0f*floor(fract_z(hash2(t))*1.8f) - 1.0f;
 
-  float f = (length(q.xyz) - 1.5f)/q.w;
+  float d = fabs(1.0f - 2.0f*fabs(dot(p.xz, float2(1.0f))))/(2.0f*sqrt(5.0f));
 
-  f = fmin(f, p.y + 1.0f);
-
-  return f;
+  d = max(d - 0.3f/4.0f, p.y + 0.5f);
+  return min(d, p.y + 1.0f);
 }
 
-static float trace(float3 ro, float3 rd, float mx, float eps, int it, float fu) {
+float trace(float3 ro, float3 rd, float mx, float eps, int it, float fu) {
   float t = 0.001f;
 
   for(int i = 0; i < it; i++) {
@@ -49,48 +47,42 @@ static float trace(float3 ro, float3 rd, float mx, float eps, int it, float fu) 
   return t < mx ? t : -1.0f;
 }
 
-static float3 normal(float3 p, float* e) {
+float3 normal(float3 p) {
   float2 h = (float2)(0.001f, 0.0f);
+  float3 n = (float3)(
+    de(p + h.xyy) - de(p - h.xyy),
+    de(p + h.yxy) - de(p - h.yxy),
+    de(p + h.yyx) - de(p - h.yyx)
+  );
 
-  float3 n1 = (float3)(de(p + h.xyy), de(p + h.yxy), de(p + h.yyx));
-  float3 n2 = (float3)(de(p - h.xyy), de(p - h.yxy), de(p - h.yyx));
-
-  float d = de(p);
-  float3 v = fabs(d - 0.5f*(n1 + n2));
-
-  *e = fmin(1.0f, pow(v.x+v.y+v.z, 0.55f)*10.0f);
-
-  return normalize(n1 - n2);
+  return normalize(n);
 }
 
-static float3 cone(float s) {
+float3 cone(float s) {
   float a = 3.14159f*hash(s + 12.23f);
   float b = 6.28138f*hash(s + 29.23f);
 
   return (float3)(sin(a)*sin(b), sin(a)*cos(b), cos(a));
 }
 
-static float3 render(float3 ro, float3 rd, float sa) {
+float3 render(float3 ro, float3 rd, float sa) {
   float3 col = float3(0.0f);
 
   for(float b = 0.0f; b < 3.0f; b++) {
     rd = normalize(rd);
 
-    float t = trace(ro, rd, 10.0f, 0.0001f, 200, 1.0f);
+    float t = trace(ro, rd, 24.0f, 0.0001f, 200, 1.0f);
     if(t < 0.0f) return col;
 
     float se = sa + 12.23f*b;
 
-    float edg;
     float3 pos = ro + rd*t;
-    float3 nor = normal(pos, &edg);
+    float3 nor = normal(pos);
 
-    float3 key = normalize((float3)(0.0f, 1.0f, 0.0f) + cone(se + 2.23f));
+    float3 key = normalize((float3)(0.8f, 0.7f, -0.6f));
 
     col += clamp(dot(key, nor), 0.0f, 1.0f)
-      *step(0.0f, -trace(pos + nor*0.001f, key, 10.0f, 0.0001f, 200, 1.0f));
-
-    col += (float3)(10.0f, 0.2f, 0.2f)*edg;
+      *step(0.0f, -trace(pos + nor*0.001f, key, 24.0f, 0.0001f, 200, 1.0f));
 
     ro = pos;
     rd = nor + cone(se);
@@ -117,8 +109,9 @@ void kernel pixel(global int* w, global int* h,
   float2 of = -0.5f + (float2)(hash(sa + 12.23f), hash(sa + 93.34f));
 
   float2 uv = (-res + 2.0f*(tf + of))/res.y;
+  uv.x *= res.x/res.y;
 
-  float3 ro = (float3)(3.5f*sin(time), 2.0f, -3.5f*cos(time));
+  float3 ro = (float3)(time, 2.0f, -3.0f);
   float3 ww = normalize((float3)(0.0f, 1.0f, 0.0f)-ro);
   float3 uu = normalize(cross((float3)(0.0f, 1.0f, 0.0f), ww));
   float3 vv = normalize(cross(ww, uu));
