@@ -7,27 +7,27 @@ Pixel::Pixel(const char* path, int w, int h) {
   //imageData = (float *)malloc(width*height*4*sizeof(float));
 
   this->initPlatformDeviceContext();
-  this->initSourcesProgramQueue(path);
-  this->initKernel();
+  this->initSourcesProgram(path);
+  this->initImageKernels();
 }
 
-float *Pixel::computeImage(float frame, float time, float *in, float *out) {
+float *Pixel::computeImage(int device, float frame, float time, float *in, float *out) {
   cl::size_t<3> origin;
   origin.push_back(0);origin.push_back(0);origin.push_back(0);
   
   cl::size_t<3> region;
   region.push_back(width); region.push_back(height); region.push_back(1);
 
-  queue.enqueueWriteBuffer(widthBuffer, CL_TRUE, 0, sizeof(int), &width);
-  queue.enqueueWriteBuffer(heightBuffer, CL_TRUE, 0, sizeof(int), &height);
-  queue.enqueueWriteBuffer(frameBuffer, CL_TRUE, 0, sizeof(float), &frame);
-  queue.enqueueWriteBuffer(timeBuffer, CL_TRUE, 0, sizeof(float), &time);
+  kernels[device].queue.enqueueWriteBuffer(kernels[device].widthBuffer, CL_TRUE, 0, sizeof(int), &width);
+  kernels[device].queue.enqueueWriteBuffer(kernels[device].heightBuffer, CL_TRUE, 0, sizeof(int), &height);
+  kernels[device].queue.enqueueWriteBuffer(kernels[device].frameBuffer, CL_TRUE, 0, sizeof(float), &frame);
+  kernels[device].queue.enqueueWriteBuffer(kernels[device].timeBuffer, CL_TRUE, 0, sizeof(float), &time);
 
-  queue.enqueueWriteImage(inBuffer, CL_TRUE, origin, region, 0, 0, in);
+  kernels[device].queue.enqueueWriteImage(kernels[device].inBuffer, CL_TRUE, origin, region, 0, 0, in);
 
-  kernel(widthBuffer, heightBuffer, frameBuffer, timeBuffer, inBuffer, resultBuffer);
+  kernels[device].kernel(kernels[device].widthBuffer, kernels[device].heightBuffer, kernels[device].frameBuffer, kernels[device].timeBuffer, kernels[device].inBuffer, kernels[device].resultBuffer);
 
-  queue.enqueueReadImage(resultBuffer, true, origin, region, 0, 0, out);
+  kernels[device].queue.enqueueReadImage(kernels[device].resultBuffer, true, origin, region, 0, 0, out);
 
   return out;
 }
@@ -36,41 +36,63 @@ void Pixel::initPlatformDeviceContext() {
   std::vector<cl::Platform> allplatforms;
   cl::Platform::get(&allplatforms);
   platform = allplatforms[0];
-  
-  std::vector<cl::Device> alldevices;
-  platform.getDevices(CL_DEVICE_TYPE_GPU, &alldevices);
-  device = alldevices[0];
 
-  auto s = device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+  platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
 
-  context = cl::Context({device});
+  context = cl::Context(devices);
 }
 
-void Pixel::initSourcesProgramQueue(const char* path) {
+void Pixel::initSourcesProgram(const char* path) {
   sources = cl::Program::Sources();
   std::ifstream t(path);
   auto src = std::string(std::istreambuf_iterator<char>(t), std::istreambuf_iterator<char>());
   sources.push_back({src.c_str(), src.length()});
 
   program = cl::Program(context, sources);
-  if(program.build({device}) != CL_SUCCESS) {
-    std::cout << "Error building Program: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl;
+  if(program.build(devices) != CL_SUCCESS) {
+    std::cout << "Error building Program: " << std::endl;
+
+    for(auto &device : devices) {
+      std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl;
+    }
+
     exit(1);
   }
 
-  queue = cl::CommandQueue(context, device);
 }
 
-void Pixel::initKernel() {
-  heightBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
-  widthBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
-  frameBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float));
-  timeBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float));
+void Pixel::initImageKernels() {
+
 
   cl::ImageFormat imageFormat(CL_RGBA, CL_FLOAT);
-  inBuffer = cl::Image2D(context, CL_MEM_READ_ONLY, imageFormat, width, height, 0, NULL, nullptr);
-  resultBuffer = cl::Image2D(context, CL_MEM_READ_WRITE, imageFormat, width, height, 0, NULL, nullptr);
 
-  kernel = cl::KernelFunctor(cl::Kernel(program, "pixel"), queue, cl::NullRange, 
-    cl::NDRange(width, height), cl::NDRange(20, 20));
+  for(auto &device : devices) {
+    auto heightBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
+    auto widthBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int));
+    auto frameBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float));
+    auto timeBuffer = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float));
+
+    auto inBuffer = cl::Image2D(context, CL_MEM_READ_ONLY, imageFormat, width, height, 0, NULL, nullptr);
+    auto resultBuffer = cl::Image2D(context, CL_MEM_READ_WRITE, imageFormat, width, height, 0, NULL, nullptr);
+    auto queue = cl::CommandQueue(context, device);
+    auto kernel = cl::KernelFunctor(cl::Kernel(program, "pixel"), queue, cl::NullRange,
+      cl::NDRange(width, height), cl::NDRange(16, 16));
+
+    kernels.push_back(ImageKernel {
+      widthBuffer,
+      heightBuffer,
+      frameBuffer,
+      timeBuffer,
+      inBuffer,
+      resultBuffer,
+      queue,
+      kernel
+    });
+  }
 }
+
+
+
+
+
+

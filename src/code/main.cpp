@@ -7,8 +7,8 @@
 int width = 1280;
 int height = 720;
 
-int pass = 130;
-int frames = 150;
+int pass = 10;
+int frames = 50;
 float timeStep = 0.03f;
 
 int main(int argc, char** argv) {
@@ -65,13 +65,13 @@ int main(int argc, char** argv) {
   glfwMakeContextCurrent(window);
   gladLoadGL();
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
-
+  
   Pixel pixel(PROJECT_SOURCE_DIR "/kernels/scene.cl", width, height);
   Pipeline pipeline(width, height);
   Renderer renderer(frames, pass, timeStep, width, height);
 
   if(prerender) {
-    ProgressBar progress(frames*pass);
+    ProgressBar progress(frames/2);
     renderer.prerender(&pixel, &progress, save, imgPath);
   } else if(load) {
     ProgressBar progress(frames);
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
   } else if(append) {
     std::cout << std::endl << "Rendering from frame " << continueOnFrame << std::endl;
 
-    ProgressBar progress(frames*pass);
+    ProgressBar progress(frames/2);
     renderer.currentTime = (timeStep*((float)continueOnFrame));
     renderer.prerender(&pixel, &progress, true, imgPath);
     std::cout << std::endl;

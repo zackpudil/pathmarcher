@@ -2,33 +2,37 @@
 
 #include <cl.hpp>
 
-class Pixel {
-private:
-  cl::Platform platform;
-  cl::Device device;
-  cl::Context context;
-
-  cl::Program::Sources sources;
-  cl::Program program;
-  cl::CommandQueue queue;
-
-  cl::Buffer heightBuffer;
+struct ImageKernel {
   cl::Buffer widthBuffer;
+  cl::Buffer heightBuffer;
   cl::Buffer frameBuffer;
   cl::Buffer timeBuffer;
 
   cl::Image2D inBuffer;
   cl::Image2D resultBuffer;
 
+  cl::CommandQueue queue;
   cl::KernelFunctor kernel;
+};
+
+class Pixel {
+private:
+  cl::Platform platform;
+  std::vector<cl::Device> devices;
+  cl::Context context;
+
+  cl::Program::Sources sources;
+  cl::Program program;
+
+  std::vector<ImageKernel> kernels;
 
   void initPlatformDeviceContext();
-  void initSourcesProgramQueue(const char* path);
-  void initKernel();
+  void initSourcesProgram(const char* path);
+  void initImageKernels();
 public:
   Pixel(const char*, int, int);
 
-  float* computeImage(float, float, float*, float*);
+  float* computeImage(int, float, float, float*, float*);
 
   int width;
   int height;

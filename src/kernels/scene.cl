@@ -119,7 +119,7 @@ void kernel pixel(global int* w, global int* h,
   float2 uv = (-res + 2.0f*(tf + of))/res.y;
 
   float3 ro = (float3)(3.5f*sin(time), 2.0f, -3.5f*cos(time));
-  float3 ww = normalize((float3)(0.0f, 1.0f, 0.0f)-ro);
+  float3 ww = normalize((float3)(0.0f, 2.0f, 0.0f)-ro);
   float3 uu = normalize(cross((float3)(0.0f, 1.0f, 0.0f), ww));
   float3 vv = normalize(cross(ww, uu));
   float3 rd = normalize(uv.x*uu + uv.y*vv + 0.97f*ww);

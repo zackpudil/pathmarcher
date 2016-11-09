@@ -11,20 +11,34 @@ Renderer::Renderer(int f, int p, float t, int w, int h) :
 void Renderer::prerender(Pixel* pixel, ProgressBar* progress, bool save, char *file) {
   float time = currentTime;
 
-  for(int i = 0; i < frames; i++) {
-
+  for(int i = 0; i < frames; i+=2) {
     reel[i] = (float *)malloc(sizeof(float)*width*height*4);
+    reel[i + 1] = (float *)malloc(sizeof(float)*width*height*4);
 
-    for(int j = 0; j < pass; j++) {
 
-      float timetook = glfwGetTime();
-      pixel->computeImage(j, time, reel[i], reel[i]);
-      timetook = glfwGetTime() - timetook;
+    float timetook = glfwGetTime();
 
-      progress->incrementProgress(timetook);
-    }
+
+    std::thread iris([=]() {
+      for(int j = 0; j < pass; j++) {
+        pixel->computeImage(0, j, time, reel[i], reel[i]);
+      }
+    });
 
     time += timeStep;
+
+    std::thread amd([=]() {
+      for(int j = 0; j < pass; j++) {
+        pixel->computeImage(1, j, time, reel[i + 1], reel[i + 1]);
+      }
+    });
+    time += timeStep;
+
+    iris.join();
+    amd.join();
+
+    timetook = glfwGetTime() - timetook;
+    progress->incrementProgress(timetook);
   }
 
   if(save) {
@@ -83,7 +97,7 @@ void Renderer::play(Pipeline *pipeline) {
 }
 
 void Renderer::render(Pipeline *pipeline, Pixel *pixel, GLFWwindow *window) {
-  pixel->computeImage(currentFrame, currentTime, reel[0], reel[0]);
+  pixel->computeImage(1, currentFrame, currentTime, reel[0], reel[0]);
 
   pipeline->imageData = reel[0];
   pipeline->draw(currentFrame);
