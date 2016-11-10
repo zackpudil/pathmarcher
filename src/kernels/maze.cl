@@ -3,27 +3,31 @@ constant sampler_t inS =
   | CLK_ADDRESS_CLAMP_TO_EDGE
   | CLK_FILTER_NEAREST;
 
-float3 reflect(float3 v, float3 n){
+static float3 reflect(float3 v, float3 n){
   return v - 2.0f*dot(v, n) * n;
 }
 
-float2 fract2_z(float2 n) {
+static float2 fract2_z(float2 n) {
   return n - floor(n);
 }
 
-float fract_z(float n) {
+static float fract_z(float n) {
   return n - floor(n);
 }
 
-float hash(float n) {
+static float hash(float n) {
   return fract_z(sin(n)*43578.5453f);
 }
 
-float hash2(float2 n) {
+static float hash2(float2 n) {
   return hash(dot(n, (float2)(12.232f, 39.343f)));
 }
 
-float de(float3 p) {
+static float3 key(float ti) {
+  return (float3)(0.0f, 0.9f*sin(ti), 0.0f);
+}
+
+static float de(float3 p) {
   float2 t = floor(p.xz);
 
   p.xz = fract2_z(p.xz) - 0.5f;
@@ -31,11 +35,11 @@ float de(float3 p) {
 
   float d = fabs(1.0f - 2.0f*fabs(dot(p.xz, float2(1.0f))))/(2.0f*sqrt(5.0f));
 
-  d = max(d - 0.3f/4.0f, p.y + 0.5f);
+  d = max(d - 0.5f/4.0f, p.y + 0.5f);
   return min(d, p.y + 1.0f);
 }
 
-float trace(float3 ro, float3 rd, float mx, float eps, int it, float fu) {
+static float trace(float3 ro, float3 rd, float mx, float eps, int it, float fu) {
   float t = 0.001f;
 
   for(int i = 0; i < it; i++) {
@@ -47,7 +51,7 @@ float trace(float3 ro, float3 rd, float mx, float eps, int it, float fu) {
   return t < mx ? t : -1.0f;
 }
 
-float3 normal(float3 p) {
+static float3 normal(float3 p) {
   float2 h = (float2)(0.001f, 0.0f);
   float3 n = (float3)(
     de(p + h.xyy) - de(p - h.xyy),
@@ -58,14 +62,14 @@ float3 normal(float3 p) {
   return normalize(n);
 }
 
-float3 cone(float s) {
+static float3 cone(float s) {
   float a = 3.14159f*hash(s + 12.23f);
   float b = 6.28138f*hash(s + 29.23f);
 
   return (float3)(sin(a)*sin(b), sin(a)*cos(b), cos(a));
 }
 
-float3 render(float3 ro, float3 rd, float sa) {
+static float3 render(float3 ro, float3 rd, float sa, float ti) {
   float3 col = float3(0.0f);
 
   for(float b = 0.0f; b < 3.0f; b++) {
@@ -76,13 +80,16 @@ float3 render(float3 ro, float3 rd, float sa) {
 
     float se = sa + 12.23f*b;
 
+    float3 k = key(ti);
+
     float3 pos = ro + rd*t;
     float3 nor = normal(pos);
 
-    float3 key = normalize((float3)(0.8f, 0.7f, -0.6f));
+    float3 lig = normalize(k - pos);
+    float dis = length(k - pos) - 0.06f;
 
-    col += clamp(dot(key, nor), 0.0f, 1.0f)
-      *step(0.0f, -trace(pos + nor*0.001f, key, 24.0f, 0.0001f, 200, 1.0f));
+    col += clamp(dot(lig, nor), 0.0f, 1.0f)
+      *step(0.0f, -trace(pos + nor*0.001f, lig, dis, 0.0001f, 200, 1.0f));
 
     ro = pos;
     rd = nor + cone(se);
@@ -109,17 +116,16 @@ void kernel pixel(global int* w, global int* h,
   float2 of = -0.5f + (float2)(hash(sa + 12.23f), hash(sa + 93.34f));
 
   float2 uv = (-res + 2.0f*(tf + of))/res.y;
-  uv.x *= res.x/res.y;
 
-  float3 ro = (float3)(time, 2.0f, -3.0f);
-  float3 ww = normalize((float3)(0.0f, 1.0f, 0.0f)-ro);
+  float3 ro = (float3)(3.0*sin(0.0), 1, -3.0*cos(0.0));
+  float3 ww = normalize(-ro);
   float3 uu = normalize(cross((float3)(0.0f, 1.0f, 0.0f), ww));
   float3 vv = normalize(cross(ww, uu));
-  float3 rd = normalize(uv.x*uu + uv.y*vv + 0.97f*ww);
+  float3 rd = normalize(uv.x*uu + uv.y*vv + 0.7f*ww);
 
   float3 color = 0.0f;
   if(frame > 0.0f) color = read_imagef(in, inS, t).xyz;
-  color += render(ro, rd, sa);
+  color += render(ro, rd, sa, time);
 
   write_imagef(image, t, (float4)(color, 1.0f));
 }
