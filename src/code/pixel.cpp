@@ -4,16 +4,15 @@
 Pixel::Pixel(const char* path, int w, int h) {
   width = w;
   height = h;
-  //imageData = (float *)malloc(width*height*4*sizeof(float));
 
   this->initPlatformDeviceContext();
   this->initSourcesProgram(path);
   this->initImageKernels();
 }
 
-float *Pixel::computeImage(int device, float frame, float time, float *in, float *out) {
+void Pixel::computeImage(int device, float frame, float time, float *in, float *out) {
   cl::size_t<3> origin;
-  origin.push_back(0);origin.push_back(0);origin.push_back(0);
+  origin.push_back(0); origin.push_back(0); origin.push_back(0);
   
   cl::size_t<3> region;
   region.push_back(width); region.push_back(height); region.push_back(1);
@@ -25,11 +24,14 @@ float *Pixel::computeImage(int device, float frame, float time, float *in, float
 
   kernels[device].queue.enqueueWriteImage(kernels[device].inBuffer, CL_TRUE, origin, region, 0, 0, in);
 
-  kernels[device].kernel(kernels[device].widthBuffer, kernels[device].heightBuffer, kernels[device].frameBuffer, kernels[device].timeBuffer, kernels[device].inBuffer, kernels[device].resultBuffer);
+  kernels[device].kernel(kernels[device].widthBuffer, 
+                        kernels[device].heightBuffer, 
+                        kernels[device].frameBuffer, 
+                        kernels[device].timeBuffer, 
+                        kernels[device].inBuffer, 
+                        kernels[device].resultBuffer);
 
   kernels[device].queue.enqueueReadImage(kernels[device].resultBuffer, true, origin, region, 0, 0, out);
-
-  return out;
 }
 
 void Pixel::initPlatformDeviceContext() {
@@ -62,8 +64,6 @@ void Pixel::initSourcesProgram(const char* path) {
 }
 
 void Pixel::initImageKernels() {
-
-
   cl::ImageFormat imageFormat(CL_RGBA, CL_FLOAT);
 
   for(auto &device : devices) {

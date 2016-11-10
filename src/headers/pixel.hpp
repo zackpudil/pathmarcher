@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cl.hpp>
+#include <progressbar.hpp>
 
 struct ImageKernel {
   cl::Buffer widthBuffer;
@@ -32,7 +33,7 @@ private:
 public:
   Pixel(const char*, int, int);
 
-  float* computeImage(int, float, float, float*, float*);
+  void computeImage(int, float, float, float*, float*);
 
   int width;
   int height;

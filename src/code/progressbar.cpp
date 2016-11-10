@@ -1,6 +1,11 @@
 #include <main.hpp>
 #include <progressbar.hpp>
 
+ProgressBar::ProgressBar(int a) : amount(a) {
+  progress = -1;
+  this->incrementProgress(0.5f);
+}
+
 void ProgressBar::incrementProgress(float timetook) {
   avgTimeTook += timetook;
 
@@ -23,8 +28,12 @@ void ProgressBar::incrementProgress(float timetook) {
   int seconds = eta % 60;
 
   std::cout << "] " << int(prog*100.0f) << "% " 
-    << progress << "/" << amount << " " 
-    << (hours) << "h " << (minutes % 60) << "m " << seconds << "s" "\r";
+    << progress << "/" << amount;
+
+  if(progress != 0)
+    std::cout << " " << (hours) << "h " << (minutes % 60) << "m " << seconds << "s";
+
+  std::cout << "\r";
   std::cout.flush();
 }
 

@@ -7,7 +7,7 @@ private:
 public:
   int amount;
 
-  ProgressBar(int a) : amount(a) {};
+  ProgressBar(int a);
 
   void clear();
   void incrementProgress(float);

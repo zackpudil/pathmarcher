@@ -7,7 +7,7 @@
 int width = 1280;
 int height = 720;
 
-int pass = 10;
+int pass = 200;
 int frames = 50;
 float timeStep = 0.03f;
 
@@ -71,17 +71,15 @@ int main(int argc, char** argv) {
   Renderer renderer(frames, pass, timeStep, width, height);
 
   if(prerender) {
-    ProgressBar progress(frames/2);
-    renderer.prerender(&pixel, &progress, save, imgPath);
+    renderer.prerender(&pixel, save, imgPath);
   } else if(load) {
     ProgressBar progress(frames);
     renderer.loadPlayback(imgPath, &progress);
   } else if(append) {
     std::cout << std::endl << "Rendering from frame " << continueOnFrame << std::endl;
 
-    ProgressBar progress(frames/2);
     renderer.currentTime = (timeStep*((float)continueOnFrame));
-    renderer.prerender(&pixel, &progress, true, imgPath);
+    renderer.prerender(&pixel, true, imgPath);
     std::cout << std::endl;
     exit(0);
   } else {

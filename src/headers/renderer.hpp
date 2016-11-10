@@ -21,7 +21,7 @@ public:
 
   Renderer(int, int, float, int, int);
 
-  void prerender(Pixel*, ProgressBar*, bool, char*);
+  void prerender(Pixel*, bool, char*);
   void init();
   void loadPlayback(char* img, ProgressBar*);
 
