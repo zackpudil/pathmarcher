@@ -16,7 +16,7 @@ static float fract_z(float n) {
 }
 
 static float hash(float n) {
-  return fract_z(sin(n)*43578.5453f);
+  return fmod((sin(n)*43578.0f), 1.0f);
 }
 
 static float hash2(float2 n) {
@@ -118,7 +118,7 @@ void kernel pixel(global int* w, global int* h,
   float2 uv = (-res + 2.0f*(tf + of))/res.y;
 
   float3 ro = (float3)(3.0*sin(0.0), 1, -3.0*cos(0.0));
-  float3 ww = normalize(-ro);
+  float3 ww = normalize((float3)(0.0f, 0.5f, 0.0f)-ro);
   float3 uu = normalize(cross((float3)(0.0f, 1.0f, 0.0f), ww));
   float3 vv = normalize(cross(ww, uu));
   float3 rd = normalize(uv.x*uu + uv.y*vv + 0.7f*ww);

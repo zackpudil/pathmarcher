@@ -33,7 +33,7 @@ private:
 public:
   Pixel(const char*, int, int);
 
-  void computeImage(int, float, float, float*, float*);
+  void computeImage(int, float, float, float*, float*, ProgressBar* = nullptr);
 
   int width;
   int height;

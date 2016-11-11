@@ -1,5 +1,6 @@
 #include <renderer.hpp>
 #include <main.hpp>
+#include <progressbar.hpp>
 
 Renderer::Renderer(int f, int p, float t, int w, int h) :
   frames(f), pass(p), timeStep(t), width(w), height(h) { 
@@ -8,78 +9,76 @@ Renderer::Renderer(int f, int p, float t, int w, int h) :
     reel = (float **)malloc(sizeof(float*)*frames);
 }
 
-void Renderer::prerender(Pixel* pixel, bool save, char *file) {
-  float time = currentTime;
-  ProgressBar progress(frames/2);
+void Renderer::prerender(Pixel* pixel) {
+  float time1 = 0.0f;
+  float time2 = timeStep*(frames/2);
+  std::vector<ProgressBar*> progresses = {new ProgressBar((frames/2)*pass), new ProgressBar((frames/2)*pass) };
+  std::vector<std::thread> threads;
 
-  for(int i = 0; i < frames; i+=2) {
-    float tt = glfwGetTime();
-    reel[i] = (float *)malloc(sizeof(float)*width*height*4);
-    reel[i + 1] = (float *)malloc(sizeof(float)*width*height*4);
-
-    std::thread iris([=]() {
+  threads.push_back(std::thread([&]() {
+    for(int i = 0; i < frames/2; i++) {
+      reel[i] = (float *)malloc(sizeof(float)*width*height*4);
       for(int j = 0; j < pass; j++) {
-        pixel->computeImage(0, j, time, reel[i], reel[i]);
+        pixel->computeImage(0, j, time1, reel[i], reel[i], progresses[0]);
       }
-    });
+      time1 += timeStep;
+    }
+  }));
 
-    time += timeStep;
-
-    std::thread amd([=]() {
+  threads.push_back(std::thread([&]() {
+    for(int i = frames/2; i < frames; i++) {
+      reel[i] = (float *)malloc(sizeof(float)*width*height*4);
       for(int j = 0; j < pass; j++) {
-        pixel->computeImage(1, j, time, reel[i + 1], reel[i + 1]);
+        pixel->computeImage(1, j, time2, reel[i], reel[i], progresses[1]);
       }
-    });
-    time += timeStep;
+      time2 += timeStep;
+    }
+  }));
 
-    iris.join();
-    amd.join();
-
-    progress.incrementProgress(glfwGetTime() - tt);
-  }
+  for(auto& th : threads) th.join();
 
   std::cout << std::endl << std::endl;
 
-  if(save) {
-    std::cout << std::endl;
-    std::cout << "Saving to " << file << std::endl;
+}
 
-    ProgressBar progress(frames);
+void Renderer::save(char *file) {
+  std::cout << std::endl;
+  std::cout << "Saving to " << file << std::endl;
 
-    std::ofstream img(file, std::ios::out | std::ios::app);
+  ProgressBar progress(frames);
 
-    for(int i = 0; i < frames; i++) {
-      float timetook = glfwGetTime();
-      for(int j = 0; j < width*height*4; j+=4) 
-      for(int k = 0; k < 4; k++) {
-          img << reel[i][j + k] << "|";
-      }
-      timetook = glfwGetTime() - timetook;
-      progress.incrementProgress(timetook);
+  std::ofstream img(file, std::ios::out | std::ios::app);
+
+  for(int i = 0; i < frames; i++) {
+
+    for(int j = 0; j < width*height*4; j+=4) 
+    for(int k = 0; k < 4; k++) {
+        img << reel[i][j + k] << "|";
     }
-    std::cout << std::endl;
-    img.close();
+
+    progress.incrementProgress(0);
   }
+  std::cout << std::endl;
+  img.close();
 }
 
 void Renderer::init() {
   reel[0] = (float *)malloc(sizeof(float)*width*height*4);
 }
 
-void Renderer::loadPlayback(char *imgPath, ProgressBar *progress) {
+void Renderer::loadPlayback(char *imgPath) {
+  ProgressBar progress(frames);
   std::ifstream img(imgPath);
   char temp;
   for(int i = 0; i < frames; i++) {
     reel[i] = (float *)malloc(sizeof(float)*width*height*4);
-    float timetook = glfwGetTime();
 
     for(int j = 0; j < width*height*4; j+= 4) 
     for(int k = 0; k < 4; k++) {
         img >> reel[i][j+k] >> temp;
     }
-    
-    timetook = glfwGetTime() - timetook;
-    progress->incrementProgress(timetook);
+
+    progress.incrementProgress(0);
   }
 }
 

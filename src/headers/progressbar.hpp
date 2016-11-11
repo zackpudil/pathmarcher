@@ -1,14 +1,17 @@
 #pragma once
+#include <mutex>
 
 class ProgressBar {
+
 private:
+  static std::mutex progressMtx;
   int progress;
-  float avgTimeTook;
+
 public:
   int amount;
 
   ProgressBar(int a);
 
   void clear();
-  void incrementProgress(float);
+  void incrementProgress(int);
 };

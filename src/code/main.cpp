@@ -7,8 +7,8 @@
 int width = 1280;
 int height = 720;
 
-int pass = 50;
-int frames = 50;
+int pass = 10;
+int frames = 300;
 float timeStep = 0.03f;
 
 int main(int argc, char** argv) {
@@ -31,13 +31,9 @@ int main(int argc, char** argv) {
     load = true;
     imgPath = argv[2];
     frames = std::stoi(argv[3], nullptr);
-  } else if(argc > 3 && std::string("continue").compare(argv[1]) == 0) {
-    append = true;
-    imgPath = argv[2];
-    continueOnFrame = std::stoi(argv[3], nullptr);
   }
 
-  bool prerendered = prerender || load || append;
+  bool prerendered = prerender || load;
 
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -71,17 +67,11 @@ int main(int argc, char** argv) {
   Renderer renderer(frames, pass, timeStep, width, height);
 
   if(prerender) {
-    renderer.prerender(&pixel, save, imgPath);
+    renderer.prerender(&pixel);
+    if(save)
+      renderer.save(imgPath);
   } else if(load) {
-    ProgressBar progress(frames);
-    renderer.loadPlayback(imgPath, &progress);
-  } else if(append) {
-    std::cout << std::endl << "Rendering from frame " << continueOnFrame << std::endl;
-
-    renderer.currentTime = (timeStep*((float)continueOnFrame));
-    renderer.prerender(&pixel, true, imgPath);
-    std::cout << std::endl;
-    exit(0);
+    renderer.loadPlayback(imgPath);
   } else {
     renderer.init();
   }

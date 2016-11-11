@@ -1,7 +1,6 @@
 #pragma once
 
 #include <pixel.hpp>
-#include <progressbar.hpp>
 #include <pipeline.hpp>
 #include <GLFW/glfw3.h>
 
@@ -21,9 +20,10 @@ public:
 
   Renderer(int, int, float, int, int);
 
-  void prerender(Pixel*, bool, char*);
+  void prerender(Pixel*);
+  void save(char *);
   void init();
-  void loadPlayback(char* img, ProgressBar*);
+  void loadPlayback(char* img);
 
   void play(Pipeline*);
   void render(Pipeline*, Pixel*, GLFWwindow*);

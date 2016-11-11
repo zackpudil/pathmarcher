@@ -10,7 +10,7 @@ Pixel::Pixel(const char* path, int w, int h) {
   this->initImageKernels();
 }
 
-void Pixel::computeImage(int device, float frame, float time, float *in, float *out) {
+void Pixel::computeImage(int device, float frame, float time, float *in, float *out, ProgressBar* progress) {
   cl::size_t<3> origin;
   origin.push_back(0); origin.push_back(0); origin.push_back(0);
   
@@ -32,6 +32,10 @@ void Pixel::computeImage(int device, float frame, float time, float *in, float *
                         kernels[device].resultBuffer);
 
   kernels[device].queue.enqueueReadImage(kernels[device].resultBuffer, true, origin, region, 0, 0, out);
+
+  if(progress != nullptr) {
+    progress->incrementProgress(device);
+  }
 }
 
 void Pixel::initPlatformDeviceContext() {

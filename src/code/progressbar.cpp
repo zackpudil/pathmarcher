@@ -1,16 +1,18 @@
 #include <main.hpp>
 #include <progressbar.hpp>
 
+std::mutex ProgressBar::progressMtx;
+
 ProgressBar::ProgressBar(int a) : amount(a) {
-  progress = -1;
-  this->incrementProgress(0.5f);
+  progress = 0;
 }
 
-void ProgressBar::incrementProgress(float timetook) {
-  avgTimeTook += timetook;
+void ProgressBar::incrementProgress(int line) {
+  ProgressBar::progressMtx.lock();
+  for(int i = 0; i < line; i++) 
+    std::cout << std::endl;
 
   progress++;
-  int eta = ((avgTimeTook/progress)*(amount - progress));
 
   std::cout << "[";
   float prog = (float)(progress)/(float)(amount - 1);
@@ -23,21 +25,15 @@ void ProgressBar::incrementProgress(float timetook) {
     else std::cout << " ";
   }
 
-  int minutes = eta/60;
-  int hours = minutes/60;
-  int seconds = eta % 60;
+  std::cout << "] " << int(prog*100.0f) << "% " << progress << "/" << amount << "\r";
 
-  std::cout << "] " << int(prog*100.0f) << "% " 
-    << progress << "/" << amount;
-
-  if(progress != 0)
-    std::cout << " " << (hours) << "h " << (minutes % 60) << "m " << seconds << "s";
-
-  std::cout << "\r";
+  for(int i = 0; i < line; i++) 
+    std::cout << "\e[A";
   std::cout.flush();
+
+  ProgressBar::progressMtx.unlock();
 }
 
 void ProgressBar::clear() {
   progress = 0;
-  avgTimeTook = 0;
 }
