@@ -12,25 +12,21 @@ static float fract_z(float n) {
 }
 
 static float hash(float n) {
-  return fract_z(sin(n)*43578.5453f);
-}
-
-static float box(float2 p, float2 b) {
-  float2 d = fabs(p) - b;
-  return min(max(d.x, d.y), 0.0f) - length(max(d, 0.0f));
+  return fmod(sin(n)*43578.5453f, 1.0f);
 }
 
 static float de(float3 p) {
+  //return length(fmax(fabs(p) - 1.0f, 0.0f));
   float4 q = (float4)(p, 1.0f);
   q.xyz -= (float3)(1.0f, 1.8f, 1.0f);
 
-  for(int i = 0; i < 5; i++) {
+  for(int i = 0; i < 6; i++) {
     q.xyz = fabs(q.xyz + 1.0f) - 1.0f;
     q /= clamp(dot(q.xyz, q.xyz), 0.25f, 1.0f);
-    q *= 1.1f;
+    q *= 1.2f;
   }
 
-  float f = (length(q.xyz) - 1.5f)/q.w;
+  float f = (length(q.xz) - 1.5f)/q.w;
 
   f = fmin(f, p.y + 1.0f);
 
@@ -58,7 +54,7 @@ static float3 normal(float3 p, float* e) {
   float d = de(p);
   float3 v = fabs(d - 0.5f*(n1 + n2));
 
-  *e = fmin(1.0f, pow(v.x+v.y+v.z, 0.55f)*10.0f);
+  *e = fmin(1.0f, pow(v.x+v.y+v.z, 0.65f)*10.0f);
 
   return normalize(n1 - n2);
 }
@@ -76,7 +72,7 @@ static float3 render(float3 ro, float3 rd, float sa) {
   for(float b = 0.0f; b < 3.0f; b++) {
     rd = normalize(rd);
 
-    float t = trace(ro, rd, 10.0f, 0.0001f, 200, 1.0f);
+    float t = trace(ro, rd, 10.0f, 0.0001f, 200, 0.75f);
     if(t < 0.0f) return col;
 
     float se = sa + 12.23f*b;
@@ -84,11 +80,12 @@ static float3 render(float3 ro, float3 rd, float sa) {
     float edg;
     float3 pos = ro + rd*t;
     float3 nor = normal(pos, &edg);
+    float3 ref = reflect(rd, nor);
 
     float3 key = normalize((float3)(0.0f, 1.0f, 0.0f) + cone(se + 2.23f));
 
-    col += clamp(dot(key, nor), 0.0f, 1.0f)
-      *step(0.0f, -trace(pos + nor*0.001f, key, 10.0f, 0.0001f, 200, 1.0f));
+    col += clamp(1.0f + dot(rd, nor), 0.0f, 1.0f)
+      *step(0.0f, -trace(pos + nor*0.001f, ref, 10.0f, 0.0001f, 200, 1.0f));
 
     col += (float3)(10.0f, 0.2f, 0.2f)*edg;
 
@@ -116,10 +113,10 @@ void kernel pixel(global int* w, global int* h,
   float sa = hash(dot(tf, (float2)(12.23f, 83.34f)) + 1833.4f*frame);
   float2 of = -0.5f + (float2)(hash(sa + 12.23f), hash(sa + 93.34f));
 
-  float2 uv = (-res + 2.0f*(tf + of))/res.y;
+  float2 uv = (-res + 2.0f*(tf + of))/res;
 
   float3 ro = (float3)(3.5f*sin(time), 2.0f, -3.5f*cos(time));
-  float3 ww = normalize((float3)(0.0f, 2.0f, 0.0f)-ro);
+  float3 ww = normalize((float3)(0.0f, 2.0f + sin(time), 0.0f)-ro);
   float3 uu = normalize(cross((float3)(0.0f, 1.0f, 0.0f), ww));
   float3 vv = normalize(cross(ww, uu));
   float3 rd = normalize(uv.x*uu + uv.y*vv + 0.97f*ww);

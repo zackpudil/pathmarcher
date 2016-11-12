@@ -1,6 +1,7 @@
 #include <renderer.hpp>
 #include <main.hpp>
 #include <progressbar.hpp>
+#include <sys/stat.h>
 
 Renderer::Renderer(int f, int p, float t, int w, int h) :
   frames(f), pass(p), timeStep(t), width(w), height(h) { 
@@ -47,7 +48,8 @@ void Renderer::save(char *file) {
 
   ProgressBar progress(frames);
 
-  std::ofstream img(file, std::ios::out | std::ios::app);
+  std::ofstream img(file);
+  img << frames << "|";
 
   for(int i = 0; i < frames; i++) {
 
@@ -67,9 +69,12 @@ void Renderer::init() {
 }
 
 void Renderer::loadPlayback(char *imgPath) {
-  ProgressBar progress(frames);
   std::ifstream img(imgPath);
+  ProgressBar progress(frames);
+
+  int te;
   char temp;
+  img >> te >> temp;
   for(int i = 0; i < frames; i++) {
     reel[i] = (float *)malloc(sizeof(float)*width*height*4);
 
@@ -80,6 +85,9 @@ void Renderer::loadPlayback(char *imgPath) {
 
     progress.incrementProgress(0);
   }
+
+  std::cout << std::endl;
+  img.close();
 }
 
 void Renderer::play(Pipeline *pipeline) {
@@ -94,7 +102,7 @@ void Renderer::play(Pipeline *pipeline) {
 }
 
 void Renderer::render(Pipeline *pipeline, Pixel *pixel, GLFWwindow *window) {
-  pixel->computeImage(1, currentFrame, currentTime, reel[0], reel[0]);
+  pixel->computeImage(currentFrame % 2, currentFrame, currentTime, reel[0], reel[0]);
 
   pipeline->imageData = reel[0];
   pipeline->draw(currentFrame);

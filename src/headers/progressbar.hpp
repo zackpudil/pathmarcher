@@ -9,6 +9,8 @@ private:
 
 public:
   int amount;
+  float totalTime;
+  float lastTime;
 
   ProgressBar(int a);
 

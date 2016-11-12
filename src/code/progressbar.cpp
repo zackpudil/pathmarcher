@@ -5,6 +5,8 @@ std::mutex ProgressBar::progressMtx;
 
 ProgressBar::ProgressBar(int a) : amount(a) {
   progress = 0;
+  totalTime = 0.0f;
+  lastTime = glfwGetTime();
 }
 
 void ProgressBar::incrementProgress(int line) {
@@ -13,6 +15,11 @@ void ProgressBar::incrementProgress(int line) {
     std::cout << std::endl;
 
   progress++;
+
+  totalTime += glfwGetTime() - lastTime;
+  lastTime = glfwGetTime();
+
+  int eta = (totalTime/progress)*(amount - progress);
 
   std::cout << "[";
   float prog = (float)(progress)/(float)(amount - 1);
@@ -25,7 +32,10 @@ void ProgressBar::incrementProgress(int line) {
     else std::cout << " ";
   }
 
-  std::cout << "] " << int(prog*100.0f) << "% " << progress << "/" << amount << "\r";
+  std::cout << "] " << int(prog*100.0f) << "% " 
+    << progress << "/" << amount << " "
+    << (eta/60/60 % 60) << "h " << (eta/60 % 60) << "m " << (eta % 60) << "s"
+    << "\r";
 
   for(int i = 0; i < line; i++) 
     std::cout << "\e[A";
@@ -36,4 +46,5 @@ void ProgressBar::incrementProgress(int line) {
 
 void ProgressBar::clear() {
   progress = 0;
+  totalTime = 0.0f;
 }

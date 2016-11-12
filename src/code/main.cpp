@@ -7,7 +7,7 @@
 int width = 1280;
 int height = 720;
 
-int pass = 10;
+int pass = 150;
 int frames = 300;
 float timeStep = 0.03f;
 
@@ -27,10 +27,12 @@ int main(int argc, char** argv) {
     prerender = true;
     if(argc > 2 && std::string("save").compare(argv[2]) == 0) save = true;
     imgPath = argv[3];
-  } else if(argc > 2 && std::string("playback").compare(argv[1]) == 0) {
+  } else if(argc > 1 && std::string("playback").compare(argv[1]) == 0) {
     load = true;
     imgPath = argv[2];
-    frames = std::stoi(argv[3], nullptr);
+    std::ifstream forFrame(imgPath);
+    forFrame >> frames;
+    forFrame.close();
   }
 
   bool prerendered = prerender || load;
@@ -62,7 +64,7 @@ int main(int argc, char** argv) {
   gladLoadGL();
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
   
-  Pixel pixel(PROJECT_SOURCE_DIR "/kernels/maze.cl", width, height);
+  Pixel pixel(PROJECT_SOURCE_DIR "/kernels/kali.cl", width, height);
   Pipeline pipeline(width, height);
   Renderer renderer(frames, pass, timeStep, width, height);
 
