@@ -7,7 +7,7 @@
 int width = 1280;
 int height = 720;
 
-int pass = 150;
+int pass = 256;
 int frames = 300;
 float timeStep = 0.03f;
 
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
   gladLoadGL();
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
   
-  Pixel pixel(PROJECT_SOURCE_DIR "/kernels/kali.cl", width, height);
+  Pixel pixel(PROJECT_SOURCE_DIR "/kernels/maze.cl", width, height);
   Pipeline pipeline(width, height);
   Renderer renderer(frames, pass, timeStep, width, height);
 

@@ -19,8 +19,12 @@ static float hash(float n) {
   return fmod((sin(n)*43578.0f), 1.0f);
 }
 
+static float hash1(float n) {
+  return fmod(sin(n), 1.0f);
+}
+
 static float hash2(float2 n) {
-  return hash(dot(n, (float2)(12.232f, 39.343f)));
+  return hash1(dot(n, (float2)(12.232f, 39.343f)));
 }
 
 static float3 key(float ti) {
