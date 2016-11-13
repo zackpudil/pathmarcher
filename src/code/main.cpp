@@ -7,8 +7,8 @@
 int width = 1280;
 int height = 720;
 
-int pass = 256;
-int frames = 300;
+int pass = 10;
+int frames = 50;
 float timeStep = 0.03f;
 
 int main(int argc, char** argv) {
@@ -23,13 +23,20 @@ int main(int argc, char** argv) {
 
   int continueOnFrame = 0;
 
-  if(argc > 1 && std::string("prerender").compare(argv[1]) == 0) {
+  if(argc == 1) {
+    std::cout << "Please provide path to scene.  E.g kernels/kali.cl";
+    exit(1);
+  }
+
+  char *scene = argv[1];
+
+  if(argc > 2 && std::string("prerender").compare(argv[2]) == 0) {
     prerender = true;
-    if(argc > 2 && std::string("save").compare(argv[2]) == 0) save = true;
-    imgPath = argv[3];
-  } else if(argc > 1 && std::string("playback").compare(argv[1]) == 0) {
+    if(argc > 3 && std::string("save").compare(argv[3]) == 0) save = true;
+    imgPath = argv[4];
+  } else if(argc > 2 && std::string("playback").compare(argv[2]) == 0) {
     load = true;
-    imgPath = argv[2];
+    imgPath = argv[3];
     std::ifstream forFrame(imgPath);
     forFrame >> frames;
     forFrame.close();
@@ -64,7 +71,7 @@ int main(int argc, char** argv) {
   gladLoadGL();
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
   
-  Pixel pixel(PROJECT_SOURCE_DIR "/kernels/maze.cl", width, height);
+  Pixel pixel(scene, width, height);
   Pipeline pipeline(width, height);
   Renderer renderer(frames, pass, timeStep, width, height);
 

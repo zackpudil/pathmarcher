@@ -19,7 +19,7 @@ file(GLOB PROJECT_SOURCES src/code/*.cpp)
 
 file(GLOB PROJECT_HEADERS src/headers/*.hpp)
 
-file(GLOB PROJECT_KERNELS src/kernels/*.cl)
+file(GLOB PROJECT_KERNELS src/kernels/*.cl src/kernels/**/*.cl)
 
 file(GLOB PROJECT_SHADERS src/shaders/*.glsl)
 

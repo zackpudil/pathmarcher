@@ -13,7 +13,9 @@ void main() {
     col = texture(image, tex).xyz;
     col /= frame;
     col = pow(col, vec3(1.1/2.2));
-  } 
+  } else {
+    col = texture(image, tex).xyz;
+  }
 
 	fragColor = vec4(col, 1);
 }

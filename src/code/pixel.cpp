@@ -1,12 +1,13 @@
 #include <pixel.hpp>
 #include <main.hpp>
+#include <map>
 
 Pixel::Pixel(const char* path, int w, int h) {
   width = w;
   height = h;
 
   this->initPlatformDeviceContext();
-  this->initSourcesProgram(path);
+  this->initSourcesProgram(this->linkSource(path, PROJECT_SOURCE_DIR "/kernels/image.cl"));
   this->initImageKernels();
 }
 
@@ -48,10 +49,20 @@ void Pixel::initPlatformDeviceContext() {
   context = cl::Context(devices);
 }
 
-void Pixel::initSourcesProgram(const char* path) {
+std::string Pixel::linkSource(const char *srcPath, const char *libPath) {
+  std::ifstream lib(libPath);
+  std::string imageKernel = std::string(std::istreambuf_iterator<char>(lib), std::istreambuf_iterator<char>());
+  lib.close();
+
+  std::ifstream src(srcPath);
+  std::string scene = std::string(std::istreambuf_iterator<char>(src), std::istreambuf_iterator<char>());
+  src.close();
+
+  return imageKernel + scene;
+}
+
+void Pixel::initSourcesProgram(std::string src) {
   sources = cl::Program::Sources();
-  std::ifstream t(path);
-  auto src = std::string(std::istreambuf_iterator<char>(t), std::istreambuf_iterator<char>());
   sources.push_back({src.c_str(), src.length()});
 
   program = cl::Program(context, sources);

@@ -27,8 +27,9 @@ private:
 
   std::vector<ImageKernel> kernels;
 
+  std::string linkSource(const char *, const char *);
   void initPlatformDeviceContext();
-  void initSourcesProgram(const char* path);
+  void initSourcesProgram(std::string src);
   void initImageKernels();
 public:
   Pixel(const char*, int, int);
