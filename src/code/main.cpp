@@ -4,8 +4,8 @@
 #include <progressbar.hpp>
 #include <renderer.hpp>
 
-int width = 1280;
-int height = 720;
+int width = 1280/2;
+int height = 720/2;
 
 int pass = 10;
 int frames = 50;
