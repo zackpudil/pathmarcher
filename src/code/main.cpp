@@ -4,11 +4,11 @@
 #include <progressbar.hpp>
 #include <renderer.hpp>
 
-int width = 1280/2;
-int height = 720/2;
+int width = 1280;
+int height = 720;
 
-int pass = 10;
-int frames = 50;
+int pass = 50;
+int frames = 200;
 float timeStep = 0.03f;
 
 int main(int argc, char** argv) {
@@ -51,16 +51,7 @@ int main(int argc, char** argv) {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-  const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-
-  glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-  glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-  glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-  glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-
-  GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "My Title", glfwGetPrimaryMonitor(), NULL);
-  glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+  GLFWwindow* window = glfwCreateWindow(width, height, "My Title", NULL, NULL);
 
   if(window == nullptr) {
     std::cout << "Failed to create OpenGL context.\n";
@@ -68,7 +59,16 @@ int main(int argc, char** argv) {
   }
   
   glfwMakeContextCurrent(window);
-  gladLoadGL();
+  if(!gladLoadGL()) {
+    std::cout << "Failed to load openGL" << std::endl;
+    exit(1);
+  }
+  
+  if(glGetError() != GL_NO_ERROR) {
+    std::cout << "There is an error going on.";
+    exit(1);
+  }
+  
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
   
   Pixel pixel(scene, width, height);

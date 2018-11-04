@@ -11,30 +11,26 @@ Renderer::Renderer(int f, int p, float t, int w, int h) :
 }
 
 void Renderer::prerender(Pixel* pixel) {
-  float time1 = 0.0f;
-  float time2 = timeStep*(frames/2);
-  std::vector<ProgressBar> progresses = { ProgressBar((frames/2)*pass), ProgressBar((frames/2)*pass) };
   std::vector<std::thread> threads;
 
-  threads.push_back(std::thread([&]() {
-    for(int i = 0; i < frames/2; i++) {
-      reel[i] = (float *)malloc(sizeof(float)*width*height*4);
-      for(int j = 0; j < pass; j++) {
-        pixel->computeImage(0, j, time1, reel[i], reel[i], &progresses[0]);
+  for(int k = 0; k < pixel->deviceCount; k++) {
+    threads.push_back(std::thread([&, k]() {
+      
+      int start = k*(frames/pixel->deviceCount);
+      int end = (k + 1)*(frames/pixel->deviceCount);
+      
+      float time = timeStep*k*(frames/pixel->deviceCount);
+      ProgressBar *progress = new ProgressBar((frames/pixel->deviceCount)*pass);
+      
+      for(int i = start; i < end; i++) {
+        reel[i] = (float *)malloc(sizeof(float)*width*height*4);
+        for(int j = 0; j < pass; j++) {
+          pixel->computeImage(k, j, time, reel[i], reel[i], progress);
+        }
+        time += timeStep;
       }
-      time1 += timeStep;
-    }
-  }));
-
-  threads.push_back(std::thread([&]() {
-    for(int i = frames/2; i < frames; i++) {
-      reel[i] = (float *)malloc(sizeof(float)*width*height*4);
-      for(int j = 0; j < pass; j++) {
-        pixel->computeImage(1, j, time2, reel[i], reel[i], &progresses[1]);
-      }
-      time2 += timeStep;
-    }
-  }));
+    }));
+  }
 
   for(auto& th : threads) th.join();
 
@@ -102,7 +98,7 @@ void Renderer::play(Pipeline *pipeline) {
 }
 
 void Renderer::render(Pipeline *pipeline, Pixel *pixel, GLFWwindow *window) {
-  pixel->computeImage(currentFrame % 2, currentFrame, currentTime, reel[0], reel[0]);
+  pixel->computeImage(currentFrame % pixel->deviceCount, currentFrame, currentTime, reel[0], reel[0]);
 
   pipeline->imageData = reel[0];
   pipeline->draw(currentFrame);

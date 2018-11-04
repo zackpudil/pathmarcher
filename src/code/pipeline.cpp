@@ -28,7 +28,15 @@ void Pipeline::draw(float frame) {
 
 GLuint Pipeline::createShader(const char* path, GLenum type) {
   std::ifstream v(path);
-  auto src = std::string(std::istreambuf_iterator<char>(v), std::istreambuf_iterator<char>()).c_str();
+  std::stringstream buffer;
+  
+  buffer << v.rdbuf();
+  buffer << "\0";
+  v.close();
+  
+  std::string code = buffer.str().c_str();
+  auto src = code.c_str();
+  
   auto shader = glCreateShader(type);
   glShaderSource(shader, 1, &src, nullptr);
   glCompileShader(shader);
@@ -36,7 +44,16 @@ GLuint Pipeline::createShader(const char* path, GLenum type) {
   int status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
   if(status == GL_FALSE) {
-    std::cout << "Error compiling shader.";
+    std::cout << "Error compiling shader." << std::endl;
+    
+    int maxLength = 0;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+    
+    std::vector<char> errors(maxLength);
+    glGetShaderInfoLog(shader, maxLength, &maxLength, &errors[0]);
+    
+    std::cout << &errors[0] << std::endl;
+    
     exit(1);
   }
 
@@ -48,6 +65,20 @@ void Pipeline::createProgram() {
   glAttachShader(program, this->createShader(PROJECT_SOURCE_DIR "/shaders/vert.glsl", GL_VERTEX_SHADER));
   glAttachShader(program, this->createShader(PROJECT_SOURCE_DIR "/shaders/frag.glsl", GL_FRAGMENT_SHADER));
   glLinkProgram(program);
+  
+  GLint status;
+  glGetProgramiv(program, GL_LINK_STATUS, &status);
+  if(status != GL_TRUE) {
+    std::cout << "NOOOOOPE" << std::endl;
+    int length;
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+    
+    std::vector<char> errors(length);
+    glGetProgramInfoLog(program, length, &length, &errors[0]);
+    
+    std::cout << &errors[0];
+    exit(1);
+  }
 }
 
 void Pipeline::createTexture() {

@@ -49,7 +49,7 @@ static float3 shade(float3 pos, float3 nor, float3 ref, float3 rd, float t, floa
 }
 
 static void camera(float3* ro, float3* rd, float2 uv, float time) {
-  *ro = (float3)(3.0*sin(0.0), 1, -3.0*cos(0.0));
+  *ro = (float3)(-3.0f, 1.0f, -3.0f);
   float3 ww = normalize((float3)(0.0f, 0.5f, 0.0f)-*ro);
   float3 uu = normalize(cross((float3)(0.0f, 1.0f, 0.0f), ww));
   float3 vv = normalize(cross(ww, uu));

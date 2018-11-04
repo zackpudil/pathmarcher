@@ -26,11 +26,11 @@ void Pixel::computeImage(int device, float frame, float time, float *in, float *
   kernels[device].queue.enqueueWriteImage(kernels[device].inBuffer, CL_TRUE, origin, region, 0, 0, in);
 
   kernels[device].kernel(kernels[device].widthBuffer, 
-                        kernels[device].heightBuffer, 
-                        kernels[device].frameBuffer, 
-                        kernels[device].timeBuffer, 
-                        kernels[device].inBuffer, 
-                        kernels[device].resultBuffer);
+                         kernels[device].heightBuffer,
+                         kernels[device].frameBuffer,
+                         kernels[device].timeBuffer,
+                         kernels[device].inBuffer,
+                         kernels[device].resultBuffer);
 
   kernels[device].queue.enqueueReadImage(kernels[device].resultBuffer, true, origin, region, 0, 0, out);
 
@@ -44,8 +44,17 @@ void Pixel::initPlatformDeviceContext() {
   cl::Platform::get(&allplatforms);
   platform = allplatforms[0];
 
-  platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
+  platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
+  
+  for(auto &device : devices) {
+    std::cout << device.getInfo<CL_DEVICE_NAME>() << std::endl;
+    auto units = device.getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>();
+    std::cout << "\t" << units[0] << "," << units[1] << "," << units[2] << std::endl;
+    std::cout << "\t" << device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() << std::endl;
+    std::cout << "\t" << device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>() << std::endl;
+  }
 
+  deviceCount = devices.size();
   context = cl::Context(devices);
 }
 
@@ -89,9 +98,13 @@ void Pixel::initImageKernels() {
 
     auto inBuffer = cl::Image2D(context, CL_MEM_READ_ONLY, imageFormat, width, height, 0, NULL, nullptr);
     auto resultBuffer = cl::Image2D(context, CL_MEM_READ_WRITE, imageFormat, width, height, 0, NULL, nullptr);
+    
     auto queue = cl::CommandQueue(context, device);
-    auto kernel = cl::KernelFunctor(cl::Kernel(program, "pixel"), queue, cl::NullRange,
-      cl::NDRange(width, height), cl::NDRange(16, 16));
+    auto kernel = cl::Kernel(program, "pixel");
+    
+    auto range = device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() == 8 ? cl::NDRange(2, 1) : cl::NDRange(32, 16);
+    
+    auto kernelFunctor = cl::KernelFunctor(kernel, queue, cl::NullRange, cl::NDRange(width, height), range);
 
     kernels.push_back(ImageKernel {
       widthBuffer,
@@ -101,13 +114,7 @@ void Pixel::initImageKernels() {
       inBuffer,
       resultBuffer,
       queue,
-      kernel
+      kernelFunctor
     });
   }
 }
-
-
-
-
-
-

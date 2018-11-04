@@ -38,4 +38,5 @@ public:
 
   int width;
   int height;
+  int deviceCount;
 };
