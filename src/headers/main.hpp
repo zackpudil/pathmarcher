@@ -8,9 +8,8 @@
 #include <string>
 #include <sstream>
 
-#include <cl.hpp>
-
 #include <glad/glad.h>
+#include <cl.hpp>
 #include <GLFW/glfw3.h>
 #include <exception>
   

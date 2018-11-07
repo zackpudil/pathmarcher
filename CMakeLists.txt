@@ -12,6 +12,7 @@ option(GLAD_EXPORT ON)
 add_subdirectory(vendor/glad)
 
 find_package(OpenCL REQUIRED)
+find_package(OpenGL REQUIRED)
 include_directories(${OpenCL_INCLUDE_DIRS}
   src/headers 
 	vendor/glfw/include 

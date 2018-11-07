@@ -1,5 +1,5 @@
-#include <pixel.hpp>
 #include <main.hpp>
+#include <pixel.hpp>
 #include <map>
 
 Pixel::Pixel(const char* path, int w, int h) {

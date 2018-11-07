@@ -1,5 +1,5 @@
-#include <renderer.hpp>
 #include <main.hpp>
+#include <renderer.hpp>
 #include <progressbar.hpp>
 #include <sys/stat.h>
 
