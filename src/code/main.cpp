@@ -43,6 +43,11 @@ int main(int argc, char** argv) {
   }
 
   bool prerendered = prerender || load;
+  
+  if(!gladLoadGL()) {
+    std::cout << "Failed to load openGL" << std::endl;
+    exit(1);
+  }
 
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -59,11 +64,7 @@ int main(int argc, char** argv) {
   }
   
   glfwMakeContextCurrent(window);
-  if(!gladLoadGL()) {
-    std::cout << "Failed to load openGL" << std::endl;
-    exit(1);
-  }
-  
+
   if(glGetError() != GL_NO_ERROR) {
     std::cout << "There is an error going on.";
     exit(1);
