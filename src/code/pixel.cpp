@@ -44,7 +44,7 @@ void Pixel::initPlatformDeviceContext() {
   cl::Platform::get(&allplatforms);
   platform = allplatforms[0];
 
-  platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
+  platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
   
   for(auto &device : devices) {
     std::cout << device.getInfo<CL_DEVICE_NAME>() << std::endl;
@@ -102,9 +102,7 @@ void Pixel::initImageKernels() {
     auto queue = cl::CommandQueue(context, device);
     auto kernel = cl::Kernel(program, "pixel");
     
-    auto range = device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() == 8 ? cl::NDRange(2, 1) : cl::NDRange(32, 16);
-    
-    auto kernelFunctor = cl::KernelFunctor(kernel, queue, cl::NullRange, cl::NDRange(width, height), range);
+    auto kernelFunctor = cl::KernelFunctor(kernel, queue, cl::NullRange, cl::NDRange(width, height), cl::NDRange(16, 12));
 
     kernels.push_back(ImageKernel {
       widthBuffer,

@@ -4,8 +4,8 @@
 #include <progressbar.hpp>
 #include <renderer.hpp>
 
-int width = 1280;
-int height = 720;
+int width = 1280/2;
+int height = 720/2;
 
 int pass = 50;
 int frames = 200;
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-  GLFWwindow* window = glfwCreateWindow(width, height, "My Title", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(width*2, height*2, "My Title", NULL, NULL);
 
   if(window == nullptr) {
     std::cout << "Failed to create OpenGL context.\n";
