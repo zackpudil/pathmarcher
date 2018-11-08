@@ -2,21 +2,10 @@ cmake_minimum_required (VERSION 3.1)
 set(CMAKE_CXX_STANDARD 11)
 
 project(pathmarcher)
-
-option(GLFW_BUILD_DOCS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_BUILD_TESTS OFF)
-add_subdirectory(vendor/glfw)
-
-option(GLAD_EXPORT ON)
-add_subdirectory(vendor/glad)
+add_subdirectory(vendor/opencv)
 
 find_package(OpenCL REQUIRED)
-find_package(OpenGL REQUIRED)
-include_directories(${OpenCL_INCLUDE_DIRS}
-  src/headers 
-	vendor/glfw/include 
-  ${GLAD_INCLUDE_DIRS})
+include_directories(${OpenCL_INCLUDE_DIRS} src/headers)
 
 file(GLOB PROJECT_SOURCES src/code/*.cpp)
 file(GLOB PROJECT_HEADERS src/headers/*.hpp)
@@ -28,7 +17,7 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Kernels" FILES ${PROJECT_KERNELS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 
-add_definitions(-DGLFW_INCLUDE_NONE -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/src\" "-w")
+add_definitions(-DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/src\" "-w")
 
 link_directories(${OpenCL_LIBRARY})
 
@@ -37,4 +26,4 @@ add_executable(${PROJECT_NAME}
 	${PROJECT_KERNELS} ${PROJECT_SHADERS})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${PROJECT_NAME} ${OpenCL_LIBRARY} ${GLAD_LIBARIES} glad ${GLFW_LIBARIES} glfw)
+target_link_libraries(${PROJECT_NAME} ${OpenCL_LIBRARY})

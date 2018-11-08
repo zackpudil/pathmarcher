@@ -1,0 +1,10 @@
+//user-defined headers
+#include "/Users/zpudil/Projects/pathmarcher/vendor/opencv/modules/core/misc/python/pyopencv_cuda.hpp"
+#include "/Users/zpudil/Projects/pathmarcher/vendor/opencv/modules/core/misc/python/pyopencv_umat.hpp"
+#include "/Users/zpudil/Projects/pathmarcher/vendor/opencv/modules/flann/misc/python/pyopencv_flann.hpp"
+#include "/Users/zpudil/Projects/pathmarcher/vendor/opencv/modules/ml/misc/python/pyopencv_ml.hpp"
+#include "/Users/zpudil/Projects/pathmarcher/vendor/opencv/modules/dnn/misc/python/pyopencv_dnn.hpp"
+#include "/Users/zpudil/Projects/pathmarcher/vendor/opencv/modules/videoio/misc/python/pyopencv_videoio.hpp"
+#include "/Users/zpudil/Projects/pathmarcher/vendor/opencv/modules/features2d/misc/python/pyopencv_features2d.hpp"
+#include "/Users/zpudil/Projects/pathmarcher/vendor/opencv/modules/objdetect/misc/python/pyopencv_objdetect.hpp"
+#include "/Users/zpudil/Projects/pathmarcher/vendor/opencv/modules/stitching/misc/python/pyopencv_stitching.hpp"
