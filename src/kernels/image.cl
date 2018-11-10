@@ -113,10 +113,13 @@ void kernel pixel(global int* w, global int* h,
   float3 ro, rd;
 
   camera(&ro, &rd, uv, time);
+  float3 renderColor = render(ro, rd, sa, time);
+  renderColor = float3(1.0f) - exp(-0.7f*renderColor);
+  renderColor = pow(fabs(renderColor), float3(1.0f/2.2f));
 
   float3 color = 0.0f;
   if(frame > 0.0f) color = read_imagef(in, inS, t).xyz;
-  color += render(ro, rd, sa, time);
+  color += renderColor;
 
   write_imagef(image, t, (float4)(color, 1.0f));
 }

@@ -1,8 +1,6 @@
 #pragma once
 
 #include <pixel.hpp>
-#include <pipeline.hpp>
-#include <GLFW/glfw3.h>
 
 class Renderer {
 private:
@@ -21,10 +19,5 @@ public:
   Renderer(int, int, float, int, int);
 
   void prerender(Pixel*);
-  void save(char *);
-  void init();
-  void loadPlayback(char* img);
-
-  void play(Pipeline*);
-  void render(Pipeline*, Pixel*, GLFWwindow*);
+  void save();
 };

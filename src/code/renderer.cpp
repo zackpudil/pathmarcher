@@ -1,7 +1,7 @@
 #include <main.hpp>
 #include <renderer.hpp>
 #include <progressbar.hpp>
-#include <sys/stat.h>
+#include <opencv2/opencv.hpp>
 
 Renderer::Renderer(int f, int p, float t, int w, int h) :
   frames(f), pass(p), timeStep(t), width(w), height(h) { 
@@ -34,78 +34,33 @@ void Renderer::prerender(Pixel* pixel) {
 
   for(auto& th : threads) th.join();
 
-  std::cout << std::endl << std::endl;
-
+  for(int i = 0; i < pixel->deviceCount; i++) {
+    std::cout << std::endl;
+  }
 }
 
-void Renderer::save(char *file) {
-  std::cout << std::endl;
-  std::cout << "Saving to " << file << std::endl;
-
+void Renderer::save() {
+  
   ProgressBar progress(frames);
-
-  std::ofstream img(file);
-  img << frames << "|";
-
-  for(int i = 0; i < frames; i++) {
-
-    for(int j = 0; j < width*height*4; j+=4) 
-    for(int k = 0; k < 4; k++) {
-        img << reel[i][j + k] << "|";
+  cv::Size sz(width, height);
+  cv::VideoWriter vw("test.mov", cv::VideoWriter::fourcc('F', 'F', 'V', '1'), 30.0, sz, true);
+  
+  for(int k = 0; k < frames; k++) {
+    
+    auto uframe = (uchar *)malloc(sizeof(uchar*)*width*height*4);
+    for(int j = 0; j < width*height*4; j++) {
+      uframe[j] = (uchar)std::floor((reel[k][j]/pass)*255.0f);
     }
-
+    
+    cv::Mat mat(sz, CV_8UC4, uframe);
+    
+    cv::Mat img;
+    cv::cvtColor(mat, img, cv::COLOR_RGBA2BGR);
+    cv::flip(img, img, 0);
+    
+    vw << img;
     progress.incrementProgress(0);
   }
   std::cout << std::endl;
-  img.close();
-}
-
-void Renderer::init() {
-  reel[0] = (float *)malloc(sizeof(float)*width*height*4);
-}
-
-void Renderer::loadPlayback(char *imgPath) {
-  std::ifstream img(imgPath);
-  ProgressBar progress(frames);
-
-  int te;
-  char temp;
-  img >> te >> temp;
-  for(int i = 0; i < frames; i++) {
-    reel[i] = (float *)malloc(sizeof(float)*width*height*4);
-
-    for(int j = 0; j < width*height*4; j+= 4) 
-    for(int k = 0; k < 4; k++) {
-        img >> reel[i][j+k] >> temp;
-    }
-
-    progress.incrementProgress(0);
-  }
-
-  std::cout << std::endl;
-  img.close();
-}
-
-void Renderer::play(Pipeline *pipeline) {
-  pipeline->imageData = reel[currentFrame];
-
-  pipeline->draw(pass);
-  if(glfwGetTime() - currentTime >= timeStep - (timeStep/2.0f)) {
-    currentFrame++;
-    if(currentFrame == frames) currentFrame = 0;
-    currentTime = glfwGetTime();
-  }
-}
-
-void Renderer::render(Pipeline *pipeline, Pixel *pixel, GLFWwindow *window) {
-  pixel->computeImage(currentFrame % pixel->deviceCount, currentFrame, currentTime, reel[0], reel[0]);
-
-  pipeline->imageData = reel[0];
-  pipeline->draw(currentFrame);
-  currentFrame++;
-
-  if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
-    currentTime += timeStep;
-    currentFrame = 0;
-  }
+  vw.release();
 }

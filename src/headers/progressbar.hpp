@@ -10,7 +10,7 @@ private:
 public:
   int amount;
   float totalTime;
-  float lastTime;
+  std::chrono::time_point<std::chrono::system_clock> lastTime;
 
   ProgressBar(int a);
 

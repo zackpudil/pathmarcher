@@ -6,7 +6,7 @@ std::mutex ProgressBar::progressMtx;
 ProgressBar::ProgressBar(int a) : amount(a) {
   progress = 0;
   totalTime = 0.0f;
-  lastTime = glfwGetTime();
+  lastTime = std::chrono::system_clock::now();
 }
 
 void ProgressBar::incrementProgress(int line) {
@@ -16,8 +16,10 @@ void ProgressBar::incrementProgress(int line) {
 
   progress++;
 
-  totalTime += glfwGetTime() - lastTime;
-  lastTime = glfwGetTime();
+  auto now = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed = now - lastTime;
+  totalTime += elapsed.count();
+  lastTime = now;
 
   int eta = (totalTime/progress)*(amount - progress);
 
