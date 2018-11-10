@@ -20,7 +20,7 @@ static float de(float3 p, float time) {
 }
 
 static float3 shade(float3 pos, float3 nor, float3 ref, float3 rd, float t, float se, float time) {
-  float3 col = float3(0.0f);
+  float3 col = (float3)(0.0f);
 
   float3 key = normalize((float3)(0.0f, 1.0f, 0.0f) + cone(se + 2.23f));
 

@@ -28,14 +28,14 @@ static float de(float3 p, float time) {
   p.xz = fract2_z(p.xz) - 0.5f;
   p.x *= 2.0f*floor(fract_z(hash2(t))*1.8f) - 1.0f;
 
-  float d = fabs(1.0f - 2.0f*fabs(dot(p.xz, float2(1.0f))))/(2.0f*sqrt(5.0f));
+  float d = fabs(1.0f - 2.0f*fabs(dot(p.xz, (float2)(1.0f))))/(2.0f*sqrt(5.0f));
 
   d = max(d - 0.5f/4.0f, p.y + 0.5f);
   return min(d, p.y + 1.0f);
 }
 
 static float3 shade(float3 pos, float3 nor, float3 ref, float3 rd, float t, float sa, float time) {
-  float3 col = float3(0.0f);
+  float3 col = (float3)(0.0f);
 
   float3 k = key(time);
 

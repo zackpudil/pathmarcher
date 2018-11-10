@@ -43,7 +43,7 @@ void Renderer::save() {
   
   ProgressBar progress(frames);
   cv::Size sz(width, height);
-  cv::VideoWriter vw("test.mov", cv::VideoWriter::fourcc('F', 'F', 'V', '1'), 30.0, sz, true);
+  cv::VideoWriter vw("test.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30.0, sz, true);
   
   for(int k = 0; k < frames; k++) {
     

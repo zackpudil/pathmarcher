@@ -5,6 +5,7 @@ project(pathmarcher)
 
 find_package(OpenCL REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(Threads)
 include_directories(${OpenCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} src/headers)
 
 file(GLOB PROJECT_SOURCES src/code/*.cpp)
@@ -25,4 +26,4 @@ add_executable(${PROJECT_NAME}
 	${PROJECT_KERNELS} ${PROJECT_SHADERS})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${PROJECT_NAME} ${OpenCL_LIBRARY} ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME} ${OpenCL_LIBRARY} ${OpenCV_LIBS} ${CMAKE_THREAD_LIBS_INIT})
