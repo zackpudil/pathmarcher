@@ -13,7 +13,6 @@ file(GLOB PROJECT_KERNELS src/kernels/*.cl src/kernels/**/*.cl)
 file(GLOB PROJECT_SHADERS src/shaders/*.glsl)
 
 source_group("Headers" FILES ${PROJECT_HEADERS})
-source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Kernels" FILES ${PROJECT_KERNELS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 
