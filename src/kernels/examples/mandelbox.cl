@@ -1,6 +1,6 @@
 static float tmax() { return 10.0f; }
 static float fudge() { return 0.25f; }
-static int iterations() { return 200; }
+static int iterations() { return 100; }
 
 constant float3 light = (float3)(0.8f, 0.7f, -0.6f);
 
