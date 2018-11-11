@@ -17,10 +17,6 @@ static float de(float3 p, float t) {
   return min((length(q.xz) - 0.3f)/q.w, p.y + 1.0f);
 }
 
-static float3 material(float3 p, float time) {
-  return float3(1.0f);
-}
-
 static float3 shade(float3 pos, float3 nor,
                     float3 ref, float3 rd,
                     float td, float se, float ti) {
