@@ -32,11 +32,11 @@ static float3 shade(float3 pos, float3 nor,
 
   col += clamp(dot(key, nor), 0.0f, 1.0f)
     *(float3)(1.64f, 1.27f, 0.99f)
-    *step(0.0f, -trace(pos + nor*0.00f, key, 10.0f, ti));
+    *step(0.0f, -trace(pos + nor*0.001f, key, 10.0f, ti));
 
   col += clamp(dot(dom, nor), 0.0f, 1.0f)
     *(float3)(0.16f, 0.20f, 0.30f)
-    *step(0.0f, -trace(pos + nor*0.00f, dom, 10.0f, ti));
+    *step(0.0f, -trace(pos + nor*0.001f, dom, 10.0f, ti));
 
   col *= 0.4f;
 
