@@ -47,11 +47,9 @@ void Pixel::initPlatformDeviceContext() {
   platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
   
   for(auto &device : devices) {
-    std::cout << device.getInfo<CL_DEVICE_NAME>() << std::endl;
-    auto units = device.getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>();
-    std::cout << "\t" << units[0] << "," << units[1] << "," << units[2] << std::endl;
-    std::cout << "\t" << device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() << std::endl;
-    std::cout << "\t" << device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>() << std::endl;
+    std::cout << device.getInfo<CL_DEVICE_NAME>();
+    std::cout << ", " << device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
+    std::cout <<  ", " << device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>() << std::endl;
   }
 
   deviceCount = devices.size();
@@ -102,7 +100,7 @@ void Pixel::initImageKernels() {
     auto queue = cl::CommandQueue(context, device);
     auto kernel = cl::Kernel(program, "pixel");
     
-    auto kernelFunctor = cl::KernelFunctor(kernel, queue, cl::NullRange, cl::NDRange(width, height), cl::NDRange(16, 12));
+    auto kernelFunctor = cl::KernelFunctor(kernel, queue, cl::NullRange, cl::NDRange(width, height), cl::NDRange(16, 16));
 
     kernels.push_back(ImageKernel {
       widthBuffer,
