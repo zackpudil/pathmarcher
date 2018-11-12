@@ -6,8 +6,8 @@
 int width = 1280;
 int height = 720;
 
-int pass = 200;
-int frames = 180;
+int pass = 1;
+int frames = 390;
 float timeStep = 0.03f;
 
 int main(int argc, char** argv) {

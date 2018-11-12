@@ -11,33 +11,67 @@ static float hash(float n) {
   return fmod(sin(n)*43578.5453f, 1.0f);
 }
 
+static float2 dmin(float2 a, float2 b) {
+    return a.x < b.x ? a : b;
+}
+
+static float smoothmin(float a, float b, float k) {
+    float h = clamp( 0.5f+0.5f*(b-a)/k, 0.0f, 1.0f);
+    return mix( b, a, h ) - k*h*(1.0f-h);
+}
+
+static float2 rot(float2 p, float a) {
+    float s = sin(a);
+    float c = cos(a);
+    
+    return (float2)(c*p.x + s*p.y, -s*p.x + c*p.y);
+}
+
+static float cylinder(float3 p, float2 h) {
+    float2 d = fabs((float2)(length(p.xz), p.y)) - h;
+    return fmin(fmax(d.x, d.y), 0.0f) + length(fmax(d, 0.0f));
+}
+
+static float segment(float3 p, float3 a, float3 b, float r) {
+    float3 pa = p - a; 
+    float3 ba = b - a;
+    
+    float h = clamp(dot(pa, ba)/dot(ba, ba), 0.0f, 1.0f);
+    
+    return length(pa - ba*h) - r;
+}
+
 static float tmax();
 static float fudge();
 static int iterations();
-static float de(float3, float);
+static float2 de(float3, float);
+static float3 shade(float3 pos, float3 nor, float3 ref, float3 rd, float2 t, float se, float time);
+static void camera(float3* ro, float3* rd, float2 uv, float time);
 
-static float trace(float3 ro, float3 rd, float mx, float time) {
+static float2 trace(float3 ro, float3 rd, float mx, float time) {
   float t = 0.001f;
+  float m = -1.0f;
 
   float fu = fudge();
   int it = iterations();
 
   for(int i = 0; i < it; i++) {
-    float d = de(ro + rd*t, time);
-    if(fabs(d) < 0.0001f || t >= mx) break;
-    t += d*fu;
+    float2 d = de(ro + rd*t, time);
+    if(fabs(d.x) < 0.0001f || t >= mx) break;
+    t += d.x*fu;
+    m = d.y;
   }
 
-  return t < mx ? t : -1.0f;
+  return (float2)(t < mx ? t : -1.0f, m);
 }
 
 static float3 normal(float3 p, float time) {
   float2 h = (float2)(0.001f, 0.0f);
 
   float3 n = (float3)(
-    de(p + h.xyy, time) - de(p - h.xyy, time),
-    de(p + h.yxy, time) - de(p - h.yxy, time),
-    de(p + h.yyx, time) - de(p - h.yyx, time)
+    de(p + h.xyy, time).x - de(p - h.xyy, time).x,
+    de(p + h.yxy, time).x - de(p - h.yxy, time).x,
+    de(p + h.yyx, time).x - de(p - h.yyx, time).x
   );
 
   return normalize(n);
@@ -46,10 +80,17 @@ static float3 normal(float3 p, float time) {
 static float edge(float3 p, float s, float time) {
   float2 h = (float2)(0.001f, 0.0f);
 
-  float3 n1 = (float3)(de(p + h.xyy, time), de(p + h.yxy, time), de(p + h.yyx, time));
-  float3 n2 = (float3)(de(p - h.xyy, time), de(p - h.yxy, time), de(p - h.yyx, time));
+  float3 n1 = (float3)(
+    de(p + h.xyy, time).x,
+    de(p + h.yxy, time).x,
+    de(p + h.yyx, time).x);
 
-  float d = de(p, time);
+  float3 n2 = (float3)(
+    de(p - h.xyy, time).x,
+    de(p - h.yxy, time).x,
+    de(p - h.yyx, time).x);
+
+  float d = de(p, time).x;
   float3 v = fabs(d - 0.5f*(n1 + n2));
 
   float e = fmin(1.0f, pow(v.x+v.y+v.z, s)*10.0f);
@@ -64,18 +105,17 @@ static float3 cone(float s) {
   return (float3)(sin(a)*sin(b), sin(a)*cos(b), cos(a));
 }
 
-static float3 shade(float3 pos, float3 nor, float3 ref, float3 rd, float t, float se, float time);
 
 static float3 render(float3 ro, float3 rd, float sa, float time) {
   float3 col = (float3)(0.0f);
 
   for(float b = 0.0f; b < 3.0f; b += 1.0f) {
     rd = normalize(rd);
-    float t = trace(ro, rd, tmax(), 0.0f);
+    float2 t = trace(ro, rd, tmax(), time);
 
-    if(t < 0.0f) return col;
+    if(t.x < 0.0f) return col;
 
-    float3 pos = ro + rd*t;
+    float3 pos = ro + rd*t.x;
     float3 nor = normal(pos, time);
     float3 ref = reflect(rd, nor);
 
@@ -90,7 +130,6 @@ static float3 render(float3 ro, float3 rd, float sa, float time) {
   return col;
 }
 
-static void camera(float3* ro, float3* rd, float2 uv, float time);
 
 void kernel pixel(global int* w, global int* h,
                   global float* f, global float* ti,
