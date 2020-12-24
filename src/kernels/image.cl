@@ -67,7 +67,7 @@ static float3 cone(float s) {
 static float3 shade(float3 pos, float3 nor, float3 ref, float3 rd, float t, float se, float time);
 
 static float3 render(float3 ro, float3 rd, float sa, float time) {
-  float3 col = float3(0.0f);
+  float3 col = (float3)(0.0f);
 
   for(float b = 0.0f; b < 3.0f; b++) {
     rd = normalize(rd);
@@ -103,7 +103,7 @@ void kernel pixel(global int* w, global int* h,
 
   int2 t = (int2)(get_global_id(0), get_global_id(1));
 
-  float2 res = float2((float)width, (float)height);
+  float2 res = (float2)((float)width, (float)height);
   float2 tf = convert_float2(t);
 
   float sa = hash(dot(tf, (float2)(12.23f, 83.34f)) + 1833.4f*frame);

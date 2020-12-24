@@ -4,15 +4,16 @@ static int iterations() { return 200; }
 
 static float de(float3 p, float time) {
   float4 q = (float4)(p, 1.0f);
+  q.y = fmod(q.y + 2.0, 4.0) - 2.0;
   q.xyz -= (float3)(1.0f, 1.8f, 1.0f);
 
   for(int i = 0; i < 5; i++) {
     q.xyz = fabs(q.xyz + 1.0f) - 1.0f;
     q /= clamp(dot(q.xyz, q.xyz), 0.25f, 1.0f);
-    q *= 1.1f;
+    q *= 1.2f;
   }
 
-  float f = (length(q.xyz) - 1.5f)/q.w;
+  float f = (length(q.xz) - 1.5f)/q.w;
 
   f = fmin(f, p.y + 1.0f);
 
@@ -20,7 +21,7 @@ static float de(float3 p, float time) {
 }
 
 static float3 shade(float3 pos, float3 nor, float3 ref, float3 rd, float t, float se, float time) {
-  float3 col = float3(0.0f);
+  float3 col = (float3)(0.0f);
 
   float3 key = normalize((float3)(0.0f, 1.0f, 0.0f) + cone(se + 2.23f));
 

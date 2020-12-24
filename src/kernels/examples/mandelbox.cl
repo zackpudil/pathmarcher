@@ -18,14 +18,14 @@ static float de(float3 p, float t) {
 }
 
 static float3 material(float3 p, float time) {
-  return float3(1.0f);
+  return (float3)(1.0f);
 }
 
 static float3 shade(float3 pos, float3 nor,
                     float3 ref, float3 rd,
                     float td, float se, float ti) {
 
-  float3 col = float3(0.0f);
+  float3 col = (float3)(0.0f);
 
   float3 key = normalize(light);
   float3 dom = normalize((float3)(0.0f, 1.0f, 0.0f) + cone(se + 12.23f));

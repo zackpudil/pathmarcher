@@ -8,6 +8,7 @@ Renderer::Renderer(int f, int p, float t, int w, int h) :
     currentTime = 0.0f;
     currentFrame = 0;
     reel = (float **)malloc(sizeof(float*)*frames);
+    imageData = (float*)malloc(sizeof(float) * width * height * 4);
 }
 
 void Renderer::prerender(Pixel* pixel) {
@@ -87,7 +88,10 @@ void Renderer::loadPlayback(char *imgPath) {
 }
 
 void Renderer::play(Pipeline *pipeline) {
-  pipeline->imageData = reel[currentFrame];
+  for (int i = 0; i < width * height * 4; i++) {
+    imageData[i] = reel[currentFrame][i] / pass;
+  }
+  pipeline->imageData = imageData;
 
   pipeline->draw(pass);
   if(glfwGetTime() - currentTime >= timeStep - (timeStep/2.0f)) {
@@ -100,7 +104,11 @@ void Renderer::play(Pipeline *pipeline) {
 void Renderer::render(Pipeline *pipeline, Pixel *pixel, GLFWwindow *window) {
   pixel->computeImage(currentFrame % pixel->deviceCount, currentFrame, currentTime, reel[0], reel[0]);
 
-  pipeline->imageData = reel[0];
+  for (int i = 0; i < width * height * 4; i++) {
+      imageData[i] = reel[0][i] / currentFrame;
+  }
+
+  pipeline->imageData = imageData;
   pipeline->draw(currentFrame);
   currentFrame++;
 

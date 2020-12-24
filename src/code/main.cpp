@@ -7,7 +7,7 @@
 int width = 1280/2;
 int height = 720/2;
 
-int pass = 50;
+int pass = 110;
 int frames = 200;
 float timeStep = 0.03f;
 
@@ -43,27 +43,27 @@ int main(int argc, char** argv) {
   }
 
   bool prerendered = prerender || load;
+
+  if (!glfwInit()) {
+      exit(1);
+  }
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+  GLFWwindow* window = glfwCreateWindow(width * 2, height * 2, "My Title", NULL, NULL);
+  glfwMakeContextCurrent(window);
+
+  if (window == nullptr) {
+      std::cout << "Failed to create OpenGL context.\n";
+      exit(1);
+  }
   
   if(!gladLoadGL()) {
     std::cout << "Failed to load openGL" << std::endl;
     exit(1);
   }
-
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-  GLFWwindow* window = glfwCreateWindow(width*2, height*2, "My Title", NULL, NULL);
-
-  if(window == nullptr) {
-    std::cout << "Failed to create OpenGL context.\n";
-    exit(1);
-  }
-  
-  glfwMakeContextCurrent(window);
 
   if(glGetError() != GL_NO_ERROR) {
     std::cout << "There is an error going on.";

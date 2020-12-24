@@ -34,7 +34,7 @@ void ProgressBar::incrementProgress(int line) {
 
   std::cout << "] " << int(prog*100.0f) << "% " 
     << progress << "/" << amount << " "
-    << (eta/60/60 % 60) << "h " << (eta/60 % 60) << "m " << (eta % 60) << "s"
+    << (eta/60/60 % 60) << "h " << (eta/60 % 60) << "m " << (eta % 60) << "s     "
     << "\r";
 
   for(int i = 0; i < line; i++) 

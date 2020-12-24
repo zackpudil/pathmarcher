@@ -7,6 +7,7 @@
 class Renderer {
 private:
   float** reel;
+  float* imageData;
 
   int width;
   int height;

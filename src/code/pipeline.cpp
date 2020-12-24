@@ -9,6 +9,7 @@ Pipeline::Pipeline(int w, int h) : width(w), height(h) {
 
 void Pipeline::draw(float frame) {
   glBindTexture(GL_TEXTURE_2D, texture);
+
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_FLOAT, imageData);
 
   glUseProgram(program);
