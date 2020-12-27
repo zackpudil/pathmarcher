@@ -15,10 +15,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${INC_DIR}")
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 add_definitions(-DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}/src\" "-w")
 
-
 source_group("Headers" FILES ${HEADERS})
 source_group("Sources" FILES ${SOURCES})
-
 
 # OpenCL
 find_package(OpenCL REQUIRED)
@@ -45,3 +43,14 @@ add_library("glad" "${GLAD_DIR}/src/glad.c")
 target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLAD_DIR}/include")
 target_link_libraries(${PROJECT_NAME} "glad" "${CMAKE_DL_LIBS}")
+
+# imgui
+set (IMGUI_DIR "${LIB_DIR}/imgui")
+file(GLOB IMGUI_SOURCES "${IMGUI_DIR}/*.cpp")
+file(GLOB IMGUI_HEADERS "${IMGUI_DIR}/*.h")
+add_library("imgui" ${IMGUI_HEADERS} ${IMGUI_SOURCES})
+target_include_directories("imgui" PRIVATE "${IMGUI_DIR}")
+target_include_directories("imgui" PRIVATE "${GLAD_DIR}/include")
+target_link_libraries("imgui" "glfw" "glad")
+target_include_directories(${PROJECT_NAME} PRIVATE "${IMGUI_DIR}")
+target_link_libraries(${PROJECT_NAME} "imgui")

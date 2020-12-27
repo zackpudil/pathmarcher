@@ -3,12 +3,15 @@
 #include <pipeline.hpp>
 #include <progressbar.hpp>
 #include <renderer.hpp>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 int width = 1280/2;
 int height = 720/2;
 
-int pass = 110;
-int frames = 200;
+int pass = 200;
+int frames = 1;
 float timeStep = 0.03f;
 
 int main(int argc, char** argv) {
@@ -71,6 +74,14 @@ int main(int argc, char** argv) {
   }
   
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
+
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+  //ImGui::StyleColorsDark();
+
+  ImGui_ImplOpenGL3_Init("#version 330");
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
   
   Pixel pixel(scene, width, height);
   Pipeline pipeline(width, height);
@@ -90,6 +101,14 @@ int main(int argc, char** argv) {
 
   // loop and render cl created texture.
   while(glfwWindowShouldClose(window) == false) {
+    glfwPollEvents();
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow();
+
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
       glfwSetWindowShouldClose(window, true);
 
@@ -99,14 +118,19 @@ int main(int argc, char** argv) {
       renderer.render(&pipeline, &pixel, window);
     }
 
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     glfwSwapBuffers(window);
-    glfwPollEvents();
   }
 
   if(!prerendered) {
     std::cout << renderer.currentFrame << std::endl;
   }
 
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
   glfwTerminate();
 
   return 0;

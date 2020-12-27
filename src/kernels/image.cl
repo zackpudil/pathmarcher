@@ -58,7 +58,7 @@ static float edge(float3 p, float s, float time) {
 }
 
 static float3 cone(float s) {
-  float a = 3.14159f*hash(s + 12.23f);
+  float a = 3.14159f*hash(s + 1.23f);
   float b = 6.28138f*hash(s + 29.23f);
 
   return (float3)(sin(a)*sin(b), sin(a)*cos(b), cos(a));
